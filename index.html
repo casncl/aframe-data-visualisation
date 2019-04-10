@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Hello, WebVR! • A-Frame</title>
+    <meta name="description" content="Hello, WebVR! • A-Frame">
+    <script src="https://aframe.io/releases/0.9.0/aframe.min.js"></script>
+    <script>
+      AFRAME.registerComponent('room',{
+        init: function () {
+          var space = document.querySelector('a-scene');
+          var i;
+          for (i=0;i<8;i++){
+            var sheet = document.createElement('a-entity');
+            sheet.setAttribute('geometry',{
+              primitive:'plane',
+              height:20,
+              width:10
+            });
+            sheet.setAttribute('material',{
+              metalness:0,
+              color:'#f0f0f0'
+            });
+            sheet.setAttribute('position',{x: 10*Math.sin(i/4*Math.PI), y:1, z:10*Math.cos(i/4*Math.PI)});
+            sheet.setAttribute('rotation',{x:0, y:(i-4)/8*360, z:0});
+            space.appendChild(sheet);
+          }
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <a-scene background="color:#CECECE" room>
+      <a-assets>
+        <img id="bg" src="https://cdn.glitch.com/1dfec84d-77f2-48da-8900-39726d273814%2F46825095384_65d859aa21_o.jpg?1554733246475">
+        <img id="wood" src="https://cdn.glitch.com/1dfec84d-77f2-48da-8900-39726d273814%2Fwooden-plank-textured-background-material_53876-33591.jpg?1554732659453">
+      </a-assets>
+      <a-sky src="#bg">  </a-sky>
+      <a-plane src="#wood" position="0 -5 0" height="20" width="20" repeat="10 10" rotation="-90 0 0" ></a-plane>
+    </a-scene>
+  </body>
+</html>
