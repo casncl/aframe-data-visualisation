@@ -130,8 +130,12 @@
           button.setAttribute('position', { x: bx[j], y: by[j], z: 0 });
           button.setAttribute(b[j] + '_cursorlistener', '');
           button.setAttribute('rotation', { x: 0, y: 0, z: 0 });
-          button.setAttribute('class', 'clickable');
           button.setAttribute('id', b[j]);
+          if (j<3){
+            button.setAttribute('visible','false');
+          } else{
+            button.setAttribute('class', 'clickable');
+          }
           var buttontext = document.createElement('a-text');
           buttontext.setAttribute('value', b[j]);
           buttontext.setAttribute('color', 'black');
