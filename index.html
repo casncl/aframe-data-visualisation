@@ -5,6 +5,7 @@
   <meta charset="utf-8">
   <title>webVR Data Visualization</title>
   <meta name="DataVisTest">
+  <link rel="shortcut icon" href="">
   <script src="https://aframe.io/releases/0.9.0/aframe.min.js"></script>
   <script> // Script prototype for events when hovering with the cursor over an object
     AFRAME.registerComponent('cursorlistener', {
@@ -39,11 +40,13 @@
           var canvas = document.createElement("CANVAS");
           var val = this.parentNode.getAttribute("value");
           canvas.setAttribute("id", "canvas" + val);
+          canvas.setAttribute("class","plot");
           canvas.setAttribute("height", "512");
-          canvas.setAttribute("width", "512")
+          canvas.setAttribute("width", "512");
           // create svg
           var svgcanvas = document.createElement("svg");
           svgcanvas.setAttribute("id", "svg" + val);
+          svgcanvas.setAttribute("class","plot");
           svgcanvas.setAttribute("height", "512");
           svgcanvas.setAttribute("width", "512");
           // create test image for the svg
@@ -66,43 +69,100 @@
   <script>
     AFRAME.registerComponent('drawtest', {
       init: function () {
-        var cid = "canvas" + this.el.parentNode.getAttribute("value");
-        var sid = "svg" + this.el.parentNode.getAttribute("value");
-        var svg = d3.select("#" + sid)
-          .append("g");
-        var xScale = d3.scale.linear().range([0, document.querySelector("#" + sid).getAttribute("width")]);
-        var yScale = d3.scale.linear().range([ document.querySelector("#" + sid).getAttribute("height"),0]);
+        var val = this.el.parentNode.getAttribute("value");
+        var fullWidth = 512;
+        var fullHeight = 512;
+        var margin = {top:10,right:10,bottom:30,left:30};
+        var width = fullWidth - margin.left - margin.right;
+        var height = fullHeight - margin.top - margin.bottom;
         d3.csv("iris.csv", type, function (error, data) {
-          var mappedArray = d3.entries(data[0]),
-            xKey = mappedArray[1].key,
-            xValue = function (d) { return d[xKey]; },
-            xMap = function (d) { return xScale(xValue(d)); },
-            xAxis = d3.svg.axis().scale(xScale).orient("bottom"),
-            yKey = mappedArray[2].key,
-            yValue = function (d) { return d[yKey]; },
-            yMap = function (d) { return yScale(yValue(d)); },
-            yAxis = d3.svg.axis().scale(yScale).orient("left");
-          xScale.domain([d3.min(data, xValue) - 1, d3.max(data, xValue) + 1]);
-          yScale.domain([d3.min(data, yValue) - 1, d3.max(data, yValue) + 1]);
-          svg.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + document.querySelector("#" + sid).getAttribute("height") + ")")
+          var mappedArray = d3.entries(data[0])
+          var canvas = d3.select("#canvas"+val)
+            .attr("width",width-1)
+            .attr("height",height-1)
+            .style("transform","translate("+(margin.left+1)+"px,"+(margin.top+1)+"px)");
+          var svg = d3.select("#svg"+val)
+            .attr("width",fullWidth)
+            .attr("height",fullHeight)
+            .append("g")
+            .attr("transform","translate("+margin.left+","+margin.top+")");
+
+          var xRange = d3.extent(data,function(d) {return d[mappedArray[1].key]});
+          var yRange = d3.extent(data,function(d) {return d[mappedArray[2].key]});
+          var xScale = d3.scale.linear()
+            .domain([xRange[0]-5,xRange[1]+5])
+            .range([0,width]);
+          var yScale = d3.scale.linear()
+            .domain([yRange[0]-5,yRange[1]+5])
+            .range([height,0]);
+          var xAxis = d3.svg.axis()
+            .scale(xScale)
+            .innerTickSize(-height)
+            .outerTickSize(0)
+            .orient('bottom');
+          var yAxis = d3.svg.axis()
+            .scale(yScale)
+            .innerTickSize(-width)
+            .outerTickSize(0)
+            .orient('left');
+          var xAxisSvg = svg.append('g')
+            .attr('class','x axis')
+            .attr('transform','translate(0,'+height,')')
             .call(xAxis);
-          svg.append("g")
-            .attr("class", "y axis")
+          var yAxisSvg = svg.append('g')
+            .attr('class','y axis')
             .call(yAxis);
-          svg.selectAll(".dot")
-            .data(data)
-            .enter().append("circle")
-            .attr("class", "dot")
-            .attr("r", 5)
-            .attr("cx", xMap)
-            .attr("cy", yMap);
-        });
-        console.log(document.querySelector("#"+cid));
-        console.log(document.querySelector("#" + sid));
-        canvg(document.querySelector("#"+cid), document.querySelector("#" + sid).innerHTML);
-        console.log(document.querySelector("#" + sid).innerHTML);
+          var context = canvas.node().getContext('2d');
+          context.clearRect(0,0,fullWidth,fullHeight);
+          context.fillStyle = 'steelblue';
+          context.strokeWidth = 1;
+          context.strokeStyle = 'white';
+          data.forEach(function(d){
+            context.beginPath();
+            context.arc(xScale(d[mappedArray[1].key]),yScale(d[mappedArray[2].key]),6,0,2*Math.PI);
+            context.closePath();
+            context.fill();
+            context.stroke();
+          });
+        }); 
+          
+        // var cid = "canvas" + this.el.parentNode.getAttribute("value");
+        // var sid = "svg" + this.el.parentNode.getAttribute("value");
+        // var svg = d3.select("#" + sid)
+        //   .append("g");
+        // var xScale = d3.scale.linear().range([0, document.querySelector("#" + sid).getAttribute("width")]);
+        // var yScale = d3.scale.linear().range([ document.querySelector("#" + sid).getAttribute("height"),0]);
+        // d3.csv("iris.csv", type, function (error, data) {
+        //   var mappedArray = d3.entries(data[0]),
+        //     xKey = mappedArray[1].key,
+        //     xValue = function (d) { return d[xKey]; },
+        //     xMap = function (d) { return xScale(xValue(d)); },
+        //     xAxis = d3.svg.axis().scale(xScale).orient("bottom"),
+        //     yKey = mappedArray[2].key,
+        //     yValue = function (d) { return d[yKey]; },
+        //     yMap = function (d) { return yScale(yValue(d)); },
+        //     yAxis = d3.svg.axis().scale(yScale).orient("left");
+        //   xScale.domain([d3.min(data, xValue) - 1, d3.max(data, xValue) + 1]);
+        //   yScale.domain([d3.min(data, yValue) - 1, d3.max(data, yValue) + 1]);
+        //   svg.append("g")
+        //     .attr("class", "x axis")
+        //     .attr("transform", "translate(0," + document.querySelector("#" + sid).getAttribute("height") + ")")
+        //     .call(xAxis);
+        //   svg.append("g")
+        //     .attr("class", "y axis")
+        //     .call(yAxis);
+        //   svg.selectAll(".dot")
+        //     .data(data)
+        //     .enter().append("circle")
+        //     .attr("class", "dot")
+        //     .attr("r", 5)
+        //     .attr("cx", xMap)
+        //     .attr("cy", yMap);
+        // });
+        // console.log(document.querySelector("#"+cid));
+        // console.log(document.querySelector("#" + sid));
+        // canvg(document.querySelector("#"+cid), document.querySelector("#" + sid).innerHTML);
+        // console.log(document.querySelector("#" + sid).innerHTML);
         
       }
     });
@@ -276,21 +336,31 @@
   <script src="https://cdn.jsdelivr.net/npm/canvg/dist/browser/canvg.min.js"></script>
 </head>
 <style>
-  body {
+  text {
     font: 11px sans-serif;
   }
-
+  .plot{
+    position:absolute;
+  }
+  #plot-canvas{
+    z-index:2;
+  }
+  #axis-svg{
+    z-index:1;
+  }
   .axis path,
   .axis line {
     fill: none;
     stroke: #000;
     shape-rendering: crispEdges;
   }
-
-  .dot {
+  .tick line{
+    opacity:0.2;
+  }
+  /* .dot {
     fill: crimson;
     stroke: #000;
-  }
+  } */
 </style>
 
 <body>
