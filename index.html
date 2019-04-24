@@ -60,7 +60,7 @@
           document.querySelector("a-assets").appendChild(canvas);
           document.querySelector("a-assets").appendChild(svgcanvas);
           canvasplane.setAttribute("drawtest", "");
-          canvasplane.setAttribute("material", {src:"#canvas4"});
+          canvasplane.setAttribute("material", {src:"#canvas"+val});
           this.parentNode.appendChild(canvasplane);
         });
       }
@@ -116,7 +116,7 @@
           context.clearRect(0,0,fullWidth,fullHeight);
           context.fillStyle = 'steelblue';
           context.strokeWidth = 1;
-          context.strokeStyle = 'white';
+          context.strokeStyle = 'black';
           data.forEach(function(d){
             context.beginPath();
             context.arc(xScale(d[mappedArray[1].key]),yScale(d[mappedArray[2].key]),6,0,2*Math.PI);
@@ -341,12 +341,6 @@
   }
   .plot{
     position:absolute;
-  }
-  #plot-canvas{
-    z-index:2;
-  }
-  #axis-svg{
-    z-index:1;
   }
   .axis path,
   .axis line {
