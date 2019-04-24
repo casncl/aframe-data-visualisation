@@ -20,99 +20,57 @@
       }
     });
   </script>
-  <script> // cursor listener for the show button 
-    AFRAME.registerComponent('show_cursorlistener', {
-      init: function () {
-        this.el.addEventListener('click', function () {
-          this.parentNode.querySelector('#x').setAttribute('visible', 'true');
-          this.parentNode.querySelector('#x').setAttribute('class', 'clickable');
-          this.parentNode.querySelector('#y').setAttribute('visible', 'true');
-          this.parentNode.querySelector('#y').setAttribute('class', 'clickable');
-          this.parentNode.querySelector('#z').setAttribute('visible', 'true');
-          this.parentNode.querySelector('#z').setAttribute('class', 'clickable');
-          // create subplane to show the graph on
-          var canvasplane = document.createElement("a-plane");
-          canvasplane.setAttribute("position", { x: 0, y: 0, z: .05 });
-          canvasplane.setAttribute("height", "5");
-          canvasplane.setAttribute("width", "5");
-          canvasplane.setAttribute("material", "color:blue");
-          //create canvas for the svg to be embedded in
-          var canvas = document.createElement("CANVAS");
-          var val = this.parentNode.getAttribute("value");
-          canvas.setAttribute("id", "canvas" + val);
-          canvas.setAttribute("class","plot");
-          canvas.setAttribute("height", "512");
-          canvas.setAttribute("width", "512");
-          // create svg
-          var svgcanvas = document.createElement("svg");
-          svgcanvas.setAttribute("id", "svg" + val);
-          svgcanvas.setAttribute("class","plot");
-          svgcanvas.setAttribute("height", "512");
-          svgcanvas.setAttribute("width", "512");
-          // create test image for the svg
-          // var testpic = document.createElement("circle");
-          // testpic.setAttribute("cx",svgcanvas.getAttribute("width")/2);
-          // testpic.setAttribute("cy",svgcanvas.getAttribute("height")/2);
-          // testpic.setAttribute("r","100");
-          //append everything
-          // svgcanvas.appendChild(testpic);
-          //canvas.appendChild(svgcanvas);
-          document.querySelector("a-assets").appendChild(canvas);
-          document.querySelector("a-assets").appendChild(svgcanvas);
-          canvasplane.setAttribute("drawtest", "");
-          canvasplane.setAttribute("material", {src:"#canvas"+val});
-          this.parentNode.appendChild(canvasplane);
-        });
-      }
-    });
-  </script>
   <script>
     AFRAME.registerComponent('drawtest', {
+      schema: {
+        default:''
+      },
       init: function () {
         var val = this.el.parentNode.getAttribute("value");
-        var fullWidth = 512;
-        var fullHeight = 512;
+        var fullWidth = 553;
+        var fullHeight = 553;
         var margin = {top:10,right:10,bottom:30,left:30};
         var width = fullWidth - margin.left - margin.right;
         var height = fullHeight - margin.top - margin.bottom;
         d3.csv("iris.csv", type, function (error, data) {
-          var mappedArray = d3.entries(data[0])
-          var canvas = d3.select("#canvas"+val)
-            .attr("width",width-1)
-            .attr("height",height-1)
-            .style("transform","translate("+(margin.left+1)+"px,"+(margin.top+1)+"px)");
-          var svg = d3.select("#svg"+val)
-            .attr("width",fullWidth)
-            .attr("height",fullHeight)
-            .append("g")
-            .attr("transform","translate("+margin.left+","+margin.top+")");
-
+          var mappedArray = d3.entries(data[0]);
+          var canvas = document.getElementById("canvas"+val);
+          // d3.select("#canvas"+val)
+          //   .attr("width",width-1)
+          //   .attr("height",height-1)
+          //   .style("transform","translate("+(margin.left+1)+"px,"+(margin.top+1)+"px)");
+          // var svg = d3.select("#svg"+val)
+          //   .attr("width",fullWidth)
+          //   .attr("height",fullHeight)
+          //   .append("g")
+          //   .attr("transform","translate("+margin.left+","+margin.top+")");
+          console.log(canvas);
           var xRange = d3.extent(data,function(d) {return d[mappedArray[1].key]});
           var yRange = d3.extent(data,function(d) {return d[mappedArray[2].key]});
           var xScale = d3.scale.linear()
-            .domain([xRange[0]-5,xRange[1]+5])
+            .domain([xRange[0],xRange[1]])
             .range([0,width]);
           var yScale = d3.scale.linear()
-            .domain([yRange[0]-5,yRange[1]+5])
+            .domain([yRange[0],yRange[1]])
             .range([height,0]);
-          var xAxis = d3.svg.axis()
-            .scale(xScale)
-            .innerTickSize(-height)
-            .outerTickSize(0)
-            .orient('bottom');
-          var yAxis = d3.svg.axis()
-            .scale(yScale)
-            .innerTickSize(-width)
-            .outerTickSize(0)
-            .orient('left');
-          var xAxisSvg = svg.append('g')
-            .attr('class','x axis')
-            .attr('transform','translate(0,'+height,')')
-            .call(xAxis);
-          var yAxisSvg = svg.append('g')
-            .attr('class','y axis')
-            .call(yAxis);
-          var context = canvas.node().getContext('2d');
+          // var xAxis = d3.svg.axis()
+          //   .scale(xScale)
+          //   .innerTickSize(-height)
+          //   .outerTickSize(0)
+          //   .orient('bottom');
+          // var yAxis = d3.svg.axis()
+          //   .scale(yScale)
+          //   .innerTickSize(-width)
+          //   .outerTickSize(0)
+          //   .orient('left');
+          // var xAxisSvg = svg.append('g')
+          //   .attr('class','x axis')
+          //   .attr('transform','translate(0,'+height,')')
+          //   .call(xAxis);
+          // var yAxisSvg = svg.append('g')
+          //   .attr('class','y axis')
+          //   .call(yAxis);
+          var context = canvas.getContext('2d');
           context.clearRect(0,0,fullWidth,fullHeight);
           context.fillStyle = 'steelblue';
           context.strokeWidth = 1;
@@ -125,7 +83,9 @@
             context.stroke();
           });
         }); 
-          
+        this.el.setAttribute("material", {src:"#canvas"+val});
+      }
+    });    
         // var cid = "canvas" + this.el.parentNode.getAttribute("value");
         // var sid = "svg" + this.el.parentNode.getAttribute("value");
         // var svg = d3.select("#" + sid)
@@ -163,13 +123,74 @@
         // console.log(document.querySelector("#" + sid));
         // canvg(document.querySelector("#"+cid), document.querySelector("#" + sid).innerHTML);
         // console.log(document.querySelector("#" + sid).innerHTML);
-        
-      }
-    });
     function type(d) {
       d.value = +d.value;
       return d;
     };
+  </script>
+  <script> // cursor listener for the show button 
+    AFRAME.registerComponent('show_cursorlistener', {
+      init: function () {
+        this.el.addEventListener('click', function () {
+          this.parentNode.querySelector('#x').setAttribute('visible', 'true');
+          this.parentNode.querySelector('#x').setAttribute('class', 'clickable');
+          this.parentNode.querySelector('#y').setAttribute('visible', 'true');
+          this.parentNode.querySelector('#y').setAttribute('class', 'clickable');
+          this.parentNode.querySelector('#z').setAttribute('visible', 'true');
+          this.parentNode.querySelector('#z').setAttribute('class', 'clickable');
+          // create subplane to show the graph on
+          var val = this.parentNode.getAttribute("value");
+          if (!document.getElementById("canvasplane"+val)){
+            var canvasplane = document.createElement("a-plane");
+            canvasplane.setAttribute("id","canvasplane"+val);
+            console.log("canvasplane created")
+          }else{
+            console.log("canvasplane selected")
+            var canvasplane = document.getElementById("canvasplane"+val);
+          }
+            canvasplane.setAttribute("position", { x: 0, y: 0, z: 1.05 });
+            canvasplane.setAttribute("height", "5");
+            canvasplane.setAttribute("width", "5");
+            canvasplane.setAttribute("material", "color:blue");
+          
+          //create canvas for the svg to be embedded in
+          if (!document.getElementById("canvas"+val)){
+            var canvas = document.createElement("CANVAS");
+            canvas.setAttribute("id", "canvas" + val);
+            console.log("canvas created")
+          }else{
+            console.log("canvas selected")
+            var canvas = document.getElementById("canvas"+val);
+          }
+            canvas.setAttribute("class","plot");
+            canvas.setAttribute("height", "512");
+            canvas.setAttribute("width", "512");
+          
+          // create svg
+          if (!document.getElementById("svg"+val)){
+            var svgcanvas = document.createElement("svg");
+            svgcanvas.setAttribute("id", "svg" + val);
+            console.log("svg created")
+          }else{
+            console.log("svg selected")
+            var svgcanvas = document.getElementById("svg"+val);
+          }
+            svgcanvas.setAttribute("class","plot");
+            svgcanvas.setAttribute("height", "512");
+            svgcanvas.setAttribute("width", "512");
+          
+           //append everything
+          document.querySelector("a-assets").appendChild(canvas);
+          document.querySelector("a-assets").appendChild(svgcanvas);
+          canvasplane.setAttribute("drawtest", "canvas"+val);
+          canvasplane.setAttribute("material", {src:"#canvas"+val});
+          if(!document.getElementById("mycanvas4").contains(document.getElementById("canvasplane4"))){
+            console.log("canvasplane appended")
+            this.parentNode.appendChild(canvasplane);
+          }
+        });
+      }
+    });
   </script>
   <script> // cursor listener for the hide button
     AFRAME.registerComponent('hide_cursorlistener', {
@@ -278,7 +299,8 @@
         for (i = 0; i < 8; i++) {
           var sheet = document.createElement('a-entity');
           var alpha = i / 4 * Math.PI;
-          sheet.setAttribute('class', 'mycanvas');
+          sheet.setAttribute("id", 'mycanvas'+i);
+          //sheet.setAttribute('class', 'mycanvas');
           sheet.setAttribute('geometry', {
             primitive: 'plane',
             height: h,
@@ -334,13 +356,11 @@
   </script>
   <script src="https://d3js.org/d3.v3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvg/dist/browser/canvg.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.0.0/lodash.min.js"></script>
 </head>
 <style>
   text {
     font: 11px sans-serif;
-  }
-  .plot{
-    position:absolute;
   }
   .axis path,
   .axis line {
