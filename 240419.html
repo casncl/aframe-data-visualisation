@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>webVR Data Visualization</title>
+  <meta name="DataVisTest">
+  <link rel="shortcut icon" href="">
+  <script src="https://aframe.io/releases/0.9.0/aframe.min.js"></script>
+  <script> // Script prototype for events when hovering with the cursor over an object
+    AFRAME.registerComponent('cursorlistener', {
+      init: function () {
+        this.el.addEventListener('click', function () {
+          this.setAttribute('material', 'color', 'green');
+          this.el.emit('clicked')
+        });
+        this.el.addEventListener('mouseleave', function () {
+          this.setAttribute('material', 'color', 'grey');
+        });
+      }
+    });
+  </script>
+  <script>
+    AFRAME.registerComponent('drawtest', {
+      schema: {
+        points: {default: []}
+      },
+      init: function () {
+        var val = this.el.parentNode.getAttribute("value");
+        var fullWidth = 553;
+        var fullHeight = 553;
+        var margin = {top:10,right:10,bottom:30,left:30};
+        var width = fullWidth - margin.left - margin.right;
+        var height = fullHeight - margin.top - margin.bottom;
+        d3.csv("iris.csv", type, function (error, data) {
+          var mappedArray = d3.entries(data[0]);
+          var canvas = document.getElementById("canvas"+val);
+          // d3.select("#canvas"+val)
+          //   .attr("width",width-1)
+          //   .attr("height",height-1)
+          //   .style("transform","translate("+(margin.left+1)+"px,"+(margin.top+1)+"px)");
+          // var svg = d3.select("#svg"+val)
+          //   .attr("width",fullWidth)
+          //   .attr("height",fullHeight)
+          //   .append("g")
+          //   .attr("transform","translate("+margin.left+","+margin.top+")");
+          console.log(canvas);
+          var xRange = d3.extent(data,function(d) {return d[mappedArray[1].key]});
+          var yRange = d3.extent(data,function(d) {return d[mappedArray[2].key]});
+          var xScale = d3.scale.linear()
+            .domain([xRange[0],xRange[1]])
+            .range([0,width]);
+          var yScale = d3.scale.linear()
+            .domain([yRange[0],yRange[1]])
+            .range([height,0]);
+          // var xAxis = d3.svg.axis()
+          //   .scale(xScale)
+          //   .innerTickSize(-height)
+          //   .outerTickSize(0)
+          //   .orient('bottom');
+          // var yAxis = d3.svg.axis()
+          //   .scale(yScale)
+          //   .innerTickSize(-width)
+          //   .outerTickSize(0)
+          //   .orient('left');
+          // var xAxisSvg = svg.append('g')
+          //   .attr('class','x axis')
+          //   .attr('transform','translate(0,'+height,')')
+          //   .call(xAxis);
+          // var yAxisSvg = svg.append('g')
+          //   .attr('class','y axis')
+          //   .call(yAxis);
+          var context = canvas.getContext('2d');
+          context.clearRect(0,0,fullWidth,fullHeight);
+          context.fillStyle = 'steelblue';
+          context.strokeWidth = 1;
+          context.strokeStyle = 'black';
+          data.forEach(function(d){
+            context.beginPath();
+            context.arc(xScale(d[mappedArray[1].key]),yScale(d[mappedArray[2].key]),6,0,2*Math.PI);
+            context.closePath();
+            context.fill();
+            context.stroke();
+          });
+        }); 
+        this.el.setAttribute("material", {src:"#canvas"+val});
+      }
+    });    
+        // var cid = "canvas" + this.el.parentNode.getAttribute("value");
+        // var sid = "svg" + this.el.parentNode.getAttribute("value");
+        // var svg = d3.select("#" + sid)
+        //   .append("g");
+        // var xScale = d3.scale.linear().range([0, document.querySelector("#" + sid).getAttribute("width")]);
+        // var yScale = d3.scale.linear().range([ document.querySelector("#" + sid).getAttribute("height"),0]);
+        // d3.csv("iris.csv", type, function (error, data) {
+        //   var mappedArray = d3.entries(data[0]),
+        //     xKey = mappedArray[1].key,
+        //     xValue = function (d) { return d[xKey]; },
+        //     xMap = function (d) { return xScale(xValue(d)); },
+        //     xAxis = d3.svg.axis().scale(xScale).orient("bottom"),
+        //     yKey = mappedArray[2].key,
+        //     yValue = function (d) { return d[yKey]; },
+        //     yMap = function (d) { return yScale(yValue(d)); },
+        //     yAxis = d3.svg.axis().scale(yScale).orient("left");
+        //   xScale.domain([d3.min(data, xValue) - 1, d3.max(data, xValue) + 1]);
+        //   yScale.domain([d3.min(data, yValue) - 1, d3.max(data, yValue) + 1]);
+        //   svg.append("g")
+        //     .attr("class", "x axis")
+        //     .attr("transform", "translate(0," + document.querySelector("#" + sid).getAttribute("height") + ")")
+        //     .call(xAxis);
+        //   svg.append("g")
+        //     .attr("class", "y axis")
+        //     .call(yAxis);
+        //   svg.selectAll(".dot")
+        //     .data(data)
+        //     .enter().append("circle")
+        //     .attr("class", "dot")
+        //     .attr("r", 5)
+        //     .attr("cx", xMap)
+        //     .attr("cy", yMap);
+        // });
+        // console.log(document.querySelector("#"+cid));
+        // console.log(document.querySelector("#" + sid));
+        // canvg(document.querySelector("#"+cid), document.querySelector("#" + sid).innerHTML);
+        // console.log(document.querySelector("#" + sid).innerHTML);
+    function type(d) {
+      d.value = +d.value;
+      return d;
+    };
+  </script>
+  <script> // cursor listener for the show button 
+    AFRAME.registerComponent('show_cursorlistener', {
+      init: function () {
+        this.el.addEventListener('click', function () {
+          this.parentNode.querySelector('#x').setAttribute('visible', 'true');
+          this.parentNode.querySelector('#x').setAttribute('class', 'clickable');
+          this.parentNode.querySelector('#y').setAttribute('visible', 'true');
+          this.parentNode.querySelector('#y').setAttribute('class', 'clickable');
+          this.parentNode.querySelector('#z').setAttribute('visible', 'true');
+          this.parentNode.querySelector('#z').setAttribute('class', 'clickable');
+          // create subplane to show the graph on
+          var val = this.parentNode.getAttribute("value");
+          if (!document.getElementById("canvasplane"+val)){
+            var canvasplane = document.createElement("a-plane");
+            canvasplane.setAttribute("id","canvasplane"+val);
+            console.log("canvasplane created")
+          }else{
+            console.log("canvasplane selected")
+            var canvasplane = document.getElementById("canvasplane"+val);
+          }
+            canvasplane.setAttribute("position", { x: 0, y: 0, z: 1.05 });
+            canvasplane.setAttribute("height", "5");
+            canvasplane.setAttribute("width", "5");
+            canvasplane.setAttribute("material", "color:blue");
+          
+          //create canvas for the svg to be embedded in
+          if (!document.getElementById("canvas"+val)){
+            var canvas = document.createElement("CANVAS");
+            canvas.setAttribute("id", "canvas" + val);
+            console.log("canvas created")
+          }else{
+            console.log("canvas selected")
+            var canvas = document.getElementById("canvas"+val);
+          }
+            canvas.setAttribute("class","plot");
+            canvas.setAttribute("height", "512");
+            canvas.setAttribute("width", "512");
+          
+          // create svg
+          if (!document.getElementById("svg"+val)){
+            var svgcanvas = document.createElement("svg");
+            svgcanvas.setAttribute("id", "svg" + val);
+            console.log("svg created")
+          }else{
+            console.log("svg selected")
+            var svgcanvas = document.getElementById("svg"+val);
+          }
+            svgcanvas.setAttribute("class","plot");
+            svgcanvas.setAttribute("height", "512");
+            svgcanvas.setAttribute("width", "512");
+          
+           //append everything
+          document.querySelector("a-assets").appendChild(canvas);
+          document.querySelector("a-assets").appendChild(svgcanvas);
+          canvasplane.setAttribute("drawtest", "canvas"+val);
+          canvasplane.setAttribute("material", {src:"#canvas"+val});
+          if(!document.getElementById("mycanvas4").contains(document.getElementById("canvasplane4"))){
+            console.log("canvasplane appended")
+            this.parentNode.appendChild(canvasplane);
+          }
+        });
+      }
+    });
+  </script>
+  <script> // cursor listener for the hide button
+    AFRAME.registerComponent('hide_cursorlistener', {
+      init: function () {
+        this.el.addEventListener('click', function () {
+          this.parentNode.querySelector('#x').setAttribute('visible', 'false');
+          this.parentNode.querySelector('#x').removeAttribute('class', 'clickable');
+          this.parentNode.querySelector('#y').setAttribute('visible', 'false');
+          this.parentNode.querySelector('#y').removeAttribute('class', 'clickable');
+          this.parentNode.querySelector('#z').setAttribute('visible', 'false');
+          this.parentNode.querySelector('#z').removeAttribute('class', 'clickable');
+          //this.parentNode.removeAttribute("material", "src");
+          //var val = this.parentNode.getAttribute('value')
+          //var remcanvas = document.getElementById("canvas" + val);
+          //document.querySelector("a-assets").removeChild(remcanvas);
+        });
+      }
+    });
+  </script>
+  <script> // cursor listener for the x axis
+    AFRAME.registerComponent('x_cursorlistener', {
+      init: function () {
+        this.el.addEventListener('click', function () {
+          /*  var sid = 'svg'+this.parentNode.getAttribute("value");
+           var svg = d3.select("#"+sid)
+             .append("g");
+           var xScale = d3.scale.linear().range([0,document.querySelector("#"+sid).width]);
+           d3.csv("iris.csv",type,function(error,data){
+             var mappedArray = d3.entries(data[0]),
+               xKey = mappedArray[1].key,
+               xValue = function(d){return d[xKey];},
+               xMap = function (d) {return xScale(xValue(d));},
+               xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+             xScale.domain([d3.min(data,xValue)-1,d3.max(data,xValue)+1]);
+             svg.append("g")
+               .attr("class","x axis")
+               .attr("transform","translate(0,"+document.querySelector("#"+sid).height+")")
+               .call(xAxis);
+             svg.selectAll(".dot")
+               .data(data)
+               .enter().append("circle")
+               .attr("class","dot")
+               .attr("r",5)
+               .attr("cx",xMap); 
+        });*/
+      });
+      }
+    });
+    function type(d) {
+      d.value = +d.value;
+      return d;
+    };
+  </script>
+  <script> // cursor listener for the y axis
+    AFRAME.registerComponent('y_cursorlistener', {
+      init: function () {
+        this.el.addEventListener('click', function () {
+          /* var sid = 'svg' + this.parentNode.getAttribute("value");
+          var svg = d3.select("#" + sid)
+            .append("g");
+          var yScale = d3.scale.linear().range([0, document.querySelector("#" + sid).width]);
+          d3.csv("iris.csv", type, function (error, data) {
+            var mappedArray = d3.entries(data[0]),
+              yKey = mappedArray[2].key,
+              yValue = function (d) { return d[yKey]; },
+              yMap = function (d) { return yScale(yValue(d)); },
+              yAxis = d3.svg.axis().scale(yScale).orient("left");
+            yScale.domain([d3.min(data, yValue) - 1, d3.max(data, yValue) + 1]);
+            svg.append("g")
+              .attr("class", "y axis")
+              .call(yAxis);
+            svg.selectAll(".dot")
+              .data(data)
+              .enter().append("circle")
+              .attr("class", "dot")
+              .attr("r", 5)
+              .attr("cy", yMap);
+          }); */
+        });
+      }
+    });
+    function type(d) {
+      d.value = +d.value;
+      return d;
+    };
+  </script>
+  <script> // cursor listener for the z axis
+    AFRAME.registerComponent('z_cursorlistener', {
+      init: function () {
+        this.el.addEventListener('click', function () {
+          this.setAttribute('material', 'color', 'black');
+        });
+        this.el.addEventListener('mouseleave', function () {
+          this.setAttribute('material', 'color', 'grey');
+        });
+      }
+    });
+  </script>
+  <script> // script for the creation of an octagonal "room"
+    AFRAME.registerComponent('room', {
+      init: function () {
+        var space = document.querySelector('a-scene');
+        var i;
+        var w = 10,
+          h = 15;
+        for (i = 0; i < 8; i++) {
+          var sheet = document.createElement('a-entity');
+          var alpha = i / 4 * Math.PI;
+          sheet.setAttribute("id", 'mycanvas'+i);
+          //sheet.setAttribute('class', 'mycanvas');
+          sheet.setAttribute('geometry', {
+            primitive: 'plane',
+            height: h,
+            width: w
+          });
+          sheet.setAttribute('material', {
+            metalness: 0,
+            color: '#f0f0f0'
+          });
+          sheet.setAttribute('position', { x: 10 * Math.sin(alpha), y: 1, z: 10 * Math.cos(alpha) });
+          sheet.setAttribute('rotation', { x: 0, y: (i - 4) / 8 * 360, z: 0 });
+          sheet.setAttribute('buttons', '');
+          sheet.setAttribute('value', i);
+          space.appendChild(sheet);
+        }
+      }
+    });
+  </script>
+  <script> // creating the buttons on the walls
+    AFRAME.registerComponent('buttons', {
+      init: function () {
+        var b = ["x", "y", "z", "show", "hide"];
+        var bx = [0.2, 0.8, 0.2, 0.2, 0.8].map(function (x) { return 10 * (x - .5) });
+        var by = [0.3, 0.65, 0.7, 0.2, 0.2].map(function (x) { return 15 * (x - .5) });
+        for (j = 0; j < 5; j++) {
+          var button = document.createElement('a-entity');
+          button.setAttribute('geometry', {
+            primitive: 'box',
+            height: '.5',
+            width: '1',
+            depth: '.1'
+          });
+          button.setAttribute('material', 'color', 'grey');
+          button.setAttribute('position', { x: bx[j], y: by[j], z: 0 });
+          button.setAttribute(b[j] + '_cursorlistener', '');
+          button.setAttribute('rotation', { x: 0, y: 0, z: 0 });
+          button.setAttribute('id', b[j]);
+          if (j < 3) {
+            button.setAttribute('visible', 'false');
+          } else {
+            button.setAttribute('class', 'clickable');
+          }
+          var buttontext = document.createElement('a-text');
+          buttontext.setAttribute('value', b[j]);
+          buttontext.setAttribute('color', 'black');
+          buttontext.setAttribute('align', 'center');
+          buttontext.setAttribute('position', { x: 0, y: 0, z: .055 });
+          button.appendChild(buttontext);
+          this.el.appendChild(button);
+        }
+      }
+    });
+  </script>
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvg/dist/browser/canvg.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.0.0/lodash.min.js"></script>
+</head>
+<style>
+  text {
+    font: 11px sans-serif;
+  }
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
+  .tick line{
+    opacity:0.2;
+  }
+  /* .dot {
+    fill: crimson;
+    stroke: #000;
+  } */
+</style>
+
+<body>
+  <a-scene background="color:#CECECE" room>
+    <a-assets>
+      <img id="wood" src="1-fine-wood-seamless.jpg" >
+    </a-assets>
+    <a-entity camera look-controls wasd-controls>
+      <a-entity
+        animation__click="property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 0.5 0.5 0.5; to: 1 1 1"
+        animation__fusing="property: scale; startEvents: fusing; easing: easeInCubic; dur: 1500; from: 1 1 1; to: 0.5 0.5 0.5"
+        animation__mouseleave="property: scale; startEvents: mouseleave; easing: easeInCubic; dur: 500; to: 1 1 1"
+        cursor="fuse:true; raycaster:{objects: .clickable}" position="0 0 -1"
+        geometry="primitive:ring; radiusInner:0.02; radiusOuter:0.03" material="color:black; shader:flat">
+      </a-entity>
+    </a-entity>
+    <a-sky color="cyan"> </a-sky>
+    <a-plane color="black" position="0 -5 0" height="20" width="20" repeat="10 10" rotation="-90 0 0"></a-plane>
+  </a-scene>
+</body>
+
+</html>
