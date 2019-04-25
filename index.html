@@ -158,8 +158,11 @@
           plotID.setAttribute('animation__pos','property: position.z;to: 2.5;dur:1500;easing:linear');
           var geo = plotID.getAttribute("geometry");
           var zRange = [0,geo.height];
-          var origin = d3.select('#origin'+idx);
-          //actual plotting
+          console.log(d3.select('#origin'+idx).attr("position"));
+          var origin = d3.select('#origin'+idx)
+           .attr('animation','property: position;to:-2.5 -2.5 -2.5;dur:1500;easing:linear');
+          console.log(plotID.getAttribute("geometry"));
+           //actual plotting
           d3.csv("iris.csv", type, function(error,data) {
             var mappedArray = d3.entries(data[0]),
               zKey = mappedArray[3].key,
@@ -182,6 +185,11 @@
       return d;
     };
   </script>
+  <!-- <script>
+  plotID.setAttribute("line__x",'start:'+ (-geo.width/2) + ' ' + (-geo.height/2) + ' ' + (-d3.select('#plotbox4').attr("geometry").depth/2)+'; end: '+ (d3.select('#plotbox4').attr("geometry").width/2) + ' ' + (-geo.height/2) + ' ' + (-d3.select('#plotbox4').attr("geometry").depth/2)+';color:black');
+              plotID.setAttribute("line__y",'start:'+ (-geo.width/2) + ' ' + (-geo.height/2) + ' ' + (-d3.select('#plotbox4').attr("geometry").depth/2)+'; end: '+ (-geo.width/2) + ' ' + (geo.height/2) + ' ' + (-d3.select('#plotbox4').attr("geometry").depth/2)+';color:black');
+              plotID.setAttribute("line__z",'start:'+ (-geo.width/2) + ' ' + (-geo.height/2) + ' ' + (-d3.select('#plotbox4').attr("geometry").depth/2)+'; end: '+ (-geo.width/2) + ' ' + (-geo.height/2) + ' ' + (d3.select('#plotbox4').attr("geometry").depth/2)+';color:black');
+              </script> -->
   <script> // script for the creation of an octagonal "room"
     AFRAME.registerComponent('room', {
       init: function () {
