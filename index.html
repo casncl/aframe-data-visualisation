@@ -9,102 +9,102 @@
   <script src="https://aframe.io/releases/0.9.0/aframe.min.js"></script>
   <script> // Script prototype for events when hovering with the cursor over an object
     AFRAME.registerComponent('data_cursorlistener', {
-      schema : {
-        axis: {default: 'x'}
+      schema: {
+        axis: { default: 'x' }
       },
       init: function () {
         var compdata = this.data;
-        console.log(compdata.axis);
         this.el.addEventListener('click', function () {
           var plotdata = window.value;
           var idx = this.parentNode.parentNode.getAttribute("value");
-          var plotID = document.getElementById('plotbox'+idx);
+          var plotID = document.getElementById('plotbox' + idx);
           var geo = plotID.getAttribute("geometry");
           var range = [];
-          console.log(compdata.axis)
-          switch (compdata.axis){
+          switch (compdata.axis) {
             case 'x':
-            range = [0,geo.width];
-            break;
+              range = [0, geo.width];
+              break;
             case 'y':
-            range = [0,geo.height];
-            break;
+              range = [0, geo.height];
+              break;
             case 'z':
-            range = [0,geo.depth];
+              range = [0, geo.depth];
           }
-          console.log(range);
-          var origin = d3.select('#origin'+idx);
+          var origin = d3.select('#origin' + idx);
           var mappedArray = d3.entries(plotdata[0]),
             key = this.getAttribute("id"),
-            extent = d3.extent(plotdata,function(d){return +d[key];});
-          var scale = d3.scale.linear()
+            extent = d3.extent(plotdata, function (d) { return +d[key]; });
+          var scale = d3.scaleLinear()
             .domain(extent)
             .range(range);
+          console.log(colorScale);
           var selection = origin.selectAll('a-sphere')
             .data(plotdata);
           selection.enter().append('a-sphere')
-            .attr('radius',0.03)
-            .attr('color','black')
-            .attr('position','0 0 0')
-            .attr('animation',function(d){  
-              return 'property: position; to: '+ scale(d[key])+' 0 0;dur:1500;easing:linear';
-            });
-          selection.attr('animation',function(d){  
+            .attr('radius', 0.03)
+            .attr('color', 'black')
+            .attr('position', '0 0 0')
+            .attr('animation', function (d) {
+              return 'property: position; to: ' + scale(d[key]) + ' 0 0;dur:1500;easing:linear';
+            })
+          if (compdata.axis=='z'){
+            var colorScale = d3.scaleSequential()
+              .domain(extent)
+              .interpolator(d3.interpolateInferno);
+            selection.attr("color",function(d){return colorScale(d[key]);});
+          }
+          selection.attr('animation', function (d) {
             var pos = '0 0 0';
-            switch (compdata.axis){
+            switch (compdata.axis) {
               case 'x':
-              pos = scale(d[key])+' '+d3.select(this).attr("position").y+' '+d3.select(this).attr("position").z;
-              break;
+                pos = scale(d[key]) + ' ' + d3.select(this).attr("position").y + ' ' + d3.select(this).attr("position").z;
+                break;
               case 'y':
-              pos = d3.select(this).attr("position").x+' '+scale(d[key])+' '+d3.select(this).attr("position").z;
-              break;
+                pos = d3.select(this).attr("position").x + ' ' + scale(d[key]) + ' ' + d3.select(this).attr("position").z;
+                break;
               case 'z':
-              pos = d3.select(this).attr("position").x+' '+d3.select(this).attr("position").y+' '+scale(d[key]);
+                pos = d3.select(this).attr("position").x + ' ' + d3.select(this).attr("position").y + ' ' + scale(d[key]);
             }
             //console.log(pos);
-            return 'property: position; to: '+ pos +';dur:1500;easing:linear';
-            });
-        });   
+            return 'property: position; to: ' + pos + ';dur:1500;easing:linear';
+          });
+        });
       }
     });
   </script>
-  
+
   <script> // cursor listener for the show button 
     AFRAME.registerComponent('show_cursorlistener', {
       init: function () {
         this.el.addEventListener('click', function () {
-          window.value = "hello";
           var val = this.parentNode.getAttribute('value')
-          this.parentNode.querySelector('#x'+val).setAttribute('visible', 'true');
-          this.parentNode.querySelector('#x'+val).setAttribute('class', 'clickable');
-          this.parentNode.querySelector('#y'+val).setAttribute('visible', 'true');
-          this.parentNode.querySelector('#y'+val).setAttribute('class', 'clickable');
-          this.parentNode.querySelector('#z'+val).setAttribute('visible', 'true');
-          this.parentNode.querySelector('#z'+val).setAttribute('class', 'clickable');
+          this.parentNode.querySelector('#x' + val).setAttribute('visible', 'true');
+          this.parentNode.querySelector('#x' + val).setAttribute('class', 'clickable');
+          this.parentNode.querySelector('#y' + val).setAttribute('visible', 'true');
+          this.parentNode.querySelector('#y' + val).setAttribute('class', 'clickable');
+          this.parentNode.querySelector('#z' + val).setAttribute('visible', 'true');
+          this.parentNode.querySelector('#z' + val).setAttribute('class', 'clickable');
           // create subplane to show the graph on
-          if (!document.getElementById("plotbox"+val)){
+          if (!document.getElementById("plotbox" + val)) {
             var plotbox = document.createElement("a-box");
-            plotbox.setAttribute("id","plotbox"+val);
+            plotbox.setAttribute("id", "plotbox" + val);
             console.log("plotbox created");
-          }else{
+          } else {
             console.log("plotbox selected")
-            var plotbox = document.getElementById("plotbox"+val);
+            var plotbox = document.getElementById("plotbox" + val);
           }
-          plotbox.setAttribute("position", { x: 0, y: 0, z:0 });
+          plotbox.setAttribute("position", { x: -.5, y: 0, z: .055 });
           plotbox.setAttribute("geometry", "height:5");
           plotbox.setAttribute("geometry", "width:5");
-          plotbox.setAttribute("geometry","depth:.25");
+          plotbox.setAttribute("geometry", "depth:.1");
           plotbox.setAttribute("material", "color:green");
           plotbox.setAttribute("material", "opacity:.1");
-          d3.csv("simulated_data_2_random_2000.csv", type, function(error,data) {
+          plotbox.setAttribute("class","not-clickable");
+          d3.csv("simulated_data_2_random_2000.csv", type, function (error, data) {
             window.value = data;
           });
-          // d3.csv("iris.csv", type, function (error, data) {
-          //   plotbox.setAttribute("value",data);
-          // });
-          //console.log(plotbox.getAttribute("data").size);
           //append everything
-          this.parentNode.appendChild(plotbox);          
+          this.parentNode.appendChild(plotbox);
         });
       }
     });
@@ -129,69 +129,62 @@
   </script>
   <script> // cursor listener for the x axis
     AFRAME.registerComponent('x_cursorlistener', {
+      schema:{
+        on: {type:'boolean',default: false}
+      },
       init: function () {
-        this.el.addEventListener('click', function () {
-          //console.log(window.value[0]);
-          var idx = this.parentNode.getAttribute("value");
-          var plotID = document.getElementById('plotbox'+idx);
+        var switched = this.data;
+        var idx = this.el.parentNode.getAttribute("value");  this.el.addEventListener('click', function () {
+          if (switched.on){
+            switched.on = false;
+            var buttonchildren = d3.select(this).selectAll(".clickable")
+            buttonchildren.attr('animation','property:position;to: 0 0 0;dur:1500;easing:linear');
+            setTimeout(function(){
+                buttonchildren.remove();
+                document.getElementById("x" + idx).setAttribute("material", "color:gray");
+              },1500
+            );
+          }else{ 
+          switched.on = true;
+          var plotID = document.getElementById('plotbox' + idx);
           var geo = plotID.getAttribute("geometry");
           d3.select(plotID).append('a-entity')
-            .attr('id','origin'+idx)
-            .attr('position',(-geo.width/2)+' '+(-geo.height/2)+' 0');
-          var origin = d3.select('#origin'+idx);
+            .attr('id', 'origin' + idx)
+            .attr('position', (-geo.width / 2) + ' ' + (-geo.height / 2) + ' 0');
+          var origin = d3.select('#origin' + idx);
           //actual plotting
           var xshift = 0;
           var yshift = 0;
           var data = window.value;
-          d3.entries(data[0]).forEach(function(d){
-            if (d.key!="" && d.key!="sample_id"){
+          d3.entries(data[0]).forEach(function (d) {
+            if (d.key != "" && d.key != "sample_id") {
               xshift++;
-              if (xshift>5){
+              if (xshift > 5) {
                 xshift = 1;
                 yshift = yshift - 0.75;
               }
               var button = document.createElement('a-entity');
               button.setAttribute('geometry', 'primitive: box');
-              button.setAttribute("geometry",{height:.5, width:.5, depth:.1});
-              button.setAttribute('animation','property:position;to: '+xshift+' '+yshift+' 0;dur:1500;easing:linear');
+              button.setAttribute("geometry", { height: .5, width: .5, depth: .08 });
+              button.setAttribute('animation', 'property:position;to: ' + xshift + ' ' + yshift + ' 0;dur:1500;easing:linear');
               button.setAttribute('material', 'color', 'grey');
-              console.log(document.getElementById("x"+idx).getAttribute('value'));
-              button.setAttribute('data_cursorlistener','axis: '+ document.getElementById("x"+idx).getAttribute('value'));
-              button.setAttribute('onclick','event.stopPropagation()');
-              //button.setAttribute('rotation', { x: 0, y: 0, z: 0 });
+              button.setAttribute('data_cursorlistener', 'axis: ' + document.getElementById("x" + idx).getAttribute('value'));
+              button.setAttribute('onclick', 'event.stopPropagation()');
               button.setAttribute('id', d.key);
               button.setAttribute('class', 'clickable');
               var buttontext = document.createElement('a-text');
               buttontext.setAttribute('value', d.key);
               buttontext.setAttribute('color', 'black');
               buttontext.setAttribute('align', 'center');
-              buttontext.setAttribute('position', { x: 0, y: 0, z: .055 });
+              buttontext.setAttribute('position', { x: 0, y: 0, z: .045 });
               button.appendChild(buttontext);
-              document.getElementById("x"+idx).appendChild(button);
-              document.getElementById("x"+idx).setAttribute("material","color:green");
-            }  
+              document.getElementById("x" + idx).appendChild(button);
+              document.getElementById("x" + idx).setAttribute("material", "color:green");
+            }
           });
-          
-          // d3.csv("simulated_data_2_random_2000.csv", type, function(error,data) {
-          //   var mappedArray = d3.entries(data[0]),
-          //     xKey = mappedArray[1].key,
-          //     xExtent = d3.extent(data,function(d){return +d[xKey];});
-          //   var xScale = d3.scale.linear()
-          //     .domain(xExtent)
-          //     .range(xRange);
-          //   var count = {}; 
-          //   origin.selectAll('a-sphere')
-          //     .data(data)
-          //     .enter().append('a-sphere')
-          //     .attr('radius',0.03)
-          //     .attr('color','black')
-          //     .attr('position','0 0 0')
-          //     .attr('animation',function(d){  
-          //       return 'property: position; to: '+ xScale(d[xKey])+' 0 0'+';dur:1500;easing:linear';
-          //     });
-                              
-          // });
-      });
+          origin.attr("line__x",'start:0 0 0; end: '+ geo.width + ' 0 0;color:gray');
+          }
+        });
       }
     });
     function type(d) {
@@ -201,60 +194,61 @@
   </script>
   <script> // cursor listener for the y axis
     AFRAME.registerComponent('y_cursorlistener', {
+      schema:{
+        on: {type:'boolean',default: false}
+      },
       init: function () {
+        var switched = this.data;
+        var idx = this.el.parentNode.getAttribute("value");
         this.el.addEventListener('click', function () {
-          var idx = this.parentNode.getAttribute("value");
-          var plotID = document.getElementById('plotbox'+idx);
+          if (switched.on){
+            switched.on = false;
+            var buttonchildren = d3.select(this).selectAll(".clickable")
+            buttonchildren.attr('animation','property:position;to: 0 0 0;dur:1500;easing:linear');
+            setTimeout(function(){
+                buttonchildren.remove();
+                document.getElementById("y" + idx).setAttribute("material", "color:gray");
+              },1500
+            );
+          }else{ 
+          switched.on = true;
+          var plotID = document.getElementById('plotbox' + idx);
           var geo = plotID.getAttribute("geometry");
-          var yRange = [0,geo.height];
-          var origin = d3.select('#origin'+idx);
+          var yRange = [0, geo.height];
+          var origin = d3.select('#origin' + idx);
           //actual plotting
           var xshift = 0;
           var yshift = 0;
           var data = window.value;
-          d3.entries(data[0]).forEach(function(d){
-            if (d.key!="" && d.key!="sample_id"){
+          d3.entries(data[0]).forEach(function (d) {
+            if (d.key != "" && d.key != "sample_id") {
               yshift--;
-              if (yshift<-5){
+              if (yshift < -5) {
                 xshift = xshift + 0.75;
                 yshift = -1;
               }
               var button = document.createElement('a-entity');
               button.setAttribute('geometry', 'primitive: box');
-              button.setAttribute("geometry",{height:.5, width:.5, depth:.1});
-              button.setAttribute('animation','property:position;to: '+xshift+' '+yshift+' 0;dur:1500;easing:linear');
+              button.setAttribute("geometry", { height: .5, width: .5, depth: .08 });
+              button.setAttribute('animation', 'property:position;to: ' + xshift + ' ' + yshift + ' 0;dur:1500;easing:linear');
               button.setAttribute('material', 'color', 'grey');
-              console.log(document.getElementById("x"+idx).getAttribute('value'));
-              button.setAttribute('data_cursorlistener','axis: '+ document.getElementById("y"+idx).getAttribute('value'));
-              button.setAttribute('onclick','event.stopPropagation()');
-              //button.setAttribute('rotation', { x: 0, y: 0, z: 0 });
+              button.setAttribute('data_cursorlistener', 'axis: ' + document.getElementById("y" + idx).getAttribute('value'));
+              button.setAttribute('onclick', 'event.stopPropagation()');
               button.setAttribute('id', d.key);
               button.setAttribute('class', 'clickable');
               var buttontext = document.createElement('a-text');
               buttontext.setAttribute('value', d.key);
               buttontext.setAttribute('color', 'black');
               buttontext.setAttribute('align', 'center');
-              buttontext.setAttribute('position', { x: 0, y: 0, z: .055 });
+              buttontext.setAttribute('position', { x: 0, y: 0, z: .045 });
               button.appendChild(buttontext);
-              document.getElementById("y"+idx).appendChild(button);
-              document.getElementById("y"+idx).setAttribute("material","color:green");
-            }  
+              document.getElementById("y" + idx).appendChild(button);
+              document.getElementById("y" + idx).setAttribute("material", "color:green");
+            }
           });
-          // d3.csv("simulated_data_2_random_2000.csv", type, function(error,data) {
-          //   var mappedArray = d3.entries(data[0]),
-          //     yKey = mappedArray[3].key,
-          //     yExtent = d3.extent(data,function(d){return +d[yKey];});
-          //   var yScale = d3.scale.linear()
-          //     .domain(yExtent)
-          //     .range(yRange);
-          //   var count = {}; 
-          //   origin.selectAll('a-sphere')
-          //     .data(data)
-          //     .attr('animation',function(d){  
-          //       return 'property: position; to: '+ d3.select(this).attr("position").x +' '+yScale(d[yKey])+' 0'+';dur:1500;easing:linear';
-          //     });
-          // });
-      });
+          origin.attr("line__y",'start:0 0 0; end: 0 '+ geo.height + ' 0;color:gray');
+          }
+        });
       }
     });
     function type(d) {
@@ -264,51 +258,66 @@
   </script>
   <script> // cursor listener for the z axis
     AFRAME.registerComponent('z_cursorlistener', {
+      schema:{
+        on: {type:'boolean',default: false}
+      },
       init: function () {
+        var switched = this.data;
+        var idx = this.el.parentNode.getAttribute("value");
         this.el.addEventListener('click', function () {
-          var idx = this.parentNode.getAttribute("value");
-          var plotID = document.getElementById('plotbox'+idx);
-          plotID.setAttribute('animation__depth','property: geometry.depth;to: 5;dur:1500;easing:linear');
-          plotID.setAttribute('animation__pos','property: position.z;to: 2.5;dur:1500;easing:linear');
+          if (switched.on){
+            switched.on = false;
+            var buttonchildren = d3.select(this).selectAll(".clickable")
+            buttonchildren.attr('animation','property:position;to: 0 0 0;dur:1500;easing:linear');
+            setTimeout(function(){
+                buttonchildren.remove();
+                document.getElementById("z" + idx).setAttribute("material", "color:gray");
+              },1500
+            );
+          }else{ 
+          switched.on = true;
+          var plotID = document.getElementById('plotbox' + idx);
+          plotID.setAttribute('animation__depth', 'property: geometry.depth;to: 5;dur:1500;easing:linear');
+          plotID.setAttribute('animation__pos', 'property: position;to:-.5 0 2.5;dur:1500;easing:linear');
           var geo = plotID.getAttribute("geometry");
-          var zRange = [0,geo.height];
-          //console.log(d3.select('#origin'+idx).attr("position"));
-          var origin = d3.select('#origin'+idx)
-           .attr('animation','property: position;to:-2.5 -2.5 -2.5;dur:1500;easing:linear');
-          //console.log(plotID.getAttribute("geometry"));
-           //actual plotting
-           var xshift = 0;
+          var zRange = [0, geo.height];
+          var origin = d3.select('#origin' + idx)
+            .attr('animation', 'property: position;to:-2.5 -2.5 -2.5;dur:1500;easing:linear');
+          //actual plotting
+          var xshift = 0;
           var yshift = 0;
           var data = window.value;
-          d3.entries(data[0]).forEach(function(d){
-            if (d.key!="" && d.key!="sample_id"){
+          d3.entries(data[0]).forEach(function (d) {
+            if (d.key != "" && d.key != "sample_id") {
               xshift++;
-              if (xshift>5){
+              if (xshift > 5) {
                 xshift = 1;
                 yshift = yshift + 0.75;
               }
               var button = document.createElement('a-entity');
               button.setAttribute('geometry', 'primitive: box');
-              button.setAttribute("geometry",{height:.5, width:.5, depth:.1});
-              button.setAttribute('animation','property:position;to: '+xshift+' '+yshift+' 0;dur:1500;easing:linear');
+              button.setAttribute("geometry", { height: .5, width: .5, depth: .08 });
+              button.setAttribute('animation', 'property:position;to: ' + xshift + ' ' + yshift + ' 0;dur:1500;easing:linear');
               button.setAttribute('material', 'color', 'grey');
-              console.log(document.getElementById("z"+idx).getAttribute('value'));
-              button.setAttribute('data_cursorlistener','axis: '+ document.getElementById("z"+idx).getAttribute('value'));
-              button.setAttribute('onclick','event.stopPropagation()');
-              //button.setAttribute('rotation', { x: 0, y: 0, z: 0 });
+              button.setAttribute('data_cursorlistener', 'axis: ' + document.getElementById("z" + idx).getAttribute('value'));
+              button.setAttribute('onclick', 'event.stopPropagation()');
               button.setAttribute('id', d.key);
               button.setAttribute('class', 'clickable');
               var buttontext = document.createElement('a-text');
               buttontext.setAttribute('value', d.key);
               buttontext.setAttribute('color', 'black');
               buttontext.setAttribute('align', 'center');
-              buttontext.setAttribute('position', { x: 0, y: 0, z: .055 });
+              buttontext.setAttribute('position', { x: 0, y: 0, z: .045 });
               button.appendChild(buttontext);
-              document.getElementById("z"+idx).appendChild(button);
-              document.getElementById("z"+idx).setAttribute("material","color:green");
-            }  
+              document.getElementById("z" + idx).appendChild(button);
+              document.getElementById("z" + idx).setAttribute("material", "color:green");
+            }
           });
-      });
+          setTimeout(function() {
+            origin.attr("line__z",'start:0 0 0; end: 0 0 '+ geo.depth+ ';color:gray');
+          },1500);
+          }
+        });
       }
     });
     function type(d) {
@@ -317,8 +326,7 @@
     };
   </script>
   <!-- <script>
-  plotID.setAttribute("line__x",'start:'+ (-geo.width/2) + ' ' + (-geo.height/2) + ' ' + (-d3.select('#plotbox4').attr("geometry").depth/2)+'; end: '+ (d3.select('#plotbox4').attr("geometry").width/2) + ' ' + (-geo.height/2) + ' ' + (-d3.select('#plotbox4').attr("geometry").depth/2)+';color:black');
-              plotID.setAttribute("line__y",'start:'+ (-geo.width/2) + ' ' + (-geo.height/2) + ' ' + (-d3.select('#plotbox4').attr("geometry").depth/2)+'; end: '+ (-geo.width/2) + ' ' + (geo.height/2) + ' ' + (-d3.select('#plotbox4').attr("geometry").depth/2)+';color:black');
+             
               plotID.setAttribute("line__z",'start:'+ (-geo.width/2) + ' ' + (-geo.height/2) + ' ' + (-d3.select('#plotbox4').attr("geometry").depth/2)+'; end: '+ (-geo.width/2) + ' ' + (-geo.height/2) + ' ' + (d3.select('#plotbox4').attr("geometry").depth/2)+';color:black');
               </script> -->
   <script> // script for the creation of an octagonal "room"
@@ -331,7 +339,7 @@
         for (i = 0; i < 8; i++) {
           var sheet = document.createElement('a-entity');
           var alpha = i / 4 * Math.PI;
-          sheet.setAttribute("id", 'mycanvas'+i);
+          sheet.setAttribute("id", 'mycanvas' + i);
           //sheet.setAttribute('class', 'mycanvas');
           sheet.setAttribute('geometry', {
             primitive: 'plane',
@@ -356,12 +364,12 @@
       init: function () {
         var val = this.el.getAttribute('value');
         var b = ["x", "y", "z", "show", "hide"];
-        var bx = [0.2, 0.825, 0.2, 0.2, 0.8].map(function (x) { return 10 * (x - .5) });
+        var bx = [0.15, 0.775, 0.15, 0.2, 0.8].map(function (x) { return 10 * (x - .5) });
         var by = [0.3, 0.65, 0.7, 0.2, 0.2].map(function (x) { return 15 * (x - .5) });
         for (j = 0; j < 5; j++) {
           var button = document.createElement('a-entity');
-          button.setAttribute('id', b[j]+val);
-          button.setAttribute('value',b[j]);
+          button.setAttribute('id', b[j] + val);
+          button.setAttribute('value', b[j]);
           button.setAttribute('geometry', {
             primitive: 'box',
             height: '.5',
@@ -388,7 +396,7 @@
       }
     });
   </script>
-  <script src="https://d3js.org/d3.v3.min.js"></script>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvg/dist/browser/canvg.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.0.0/lodash.min.js"></script>
 </head>
@@ -396,15 +404,18 @@
   text {
     font: 11px sans-serif;
   }
+
   .axis path,
   .axis line {
     fill: none;
     stroke: #000;
     shape-rendering: crispEdges;
   }
-  .tick line{
-    opacity:0.2;
+
+  .tick line {
+    opacity: 0.2;
   }
+
   /* .dot {
     fill: crimson;
     stroke: #000;
@@ -414,14 +425,16 @@
 <body>
   <a-scene background="color:#CECECE" room>
     <a-assets>
-      <img id="wood" src="1-fine-wood-seamless.jpg" >
+      <img id="wood" src="1-fine-wood-seamless.jpg">
     </a-assets>
     <a-entity camera look-controls wasd-controls>
       <a-entity
         animation__click="property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 0.5 0.5 0.5; to: 1 1 1"
         animation__fusing="property: scale; startEvents: fusing; easing: easeInCubic; dur: 1500; from: 1 1 1; to: 0.5 0.5 0.5"
         animation__mouseleave="property: scale; startEvents: mouseleave; easing: easeInCubic; dur: 500; to: 1 1 1"
-        cursor="fuse:true; raycaster:{objects: .clickable}" position="0 0 -1"
+        raycaster = "objects: .clickable" 
+        cursor="fuse:true"
+        position="0 0 -1"
         geometry="primitive:ring; radiusInner:0.02; radiusOuter:0.03" material="color:black; shader:flat">
       </a-entity>
     </a-entity>
