@@ -2,11 +2,11 @@
 <html>
 
 <head>
-  <meta charset="utf-8">
+  <meta charset='utf-8'>
   <title>webVR Data Visualization</title>
-  <meta name="DataVisTest">
-  <link rel="shortcut icon" href="">
-  <script src="https://aframe.io/releases/0.9.0/aframe.min.js"></script>
+  <meta name='DataVisTest'>
+  <link rel='shortcut icon' href=''>
+  <script src='https://aframe.io/releases/0.9.0/aframe.min.js'></script>
   <script> // Script prototype for events when hovering with the cursor over an object
     AFRAME.registerComponent('data_cursorlistener', {
       schema: {
@@ -16,9 +16,9 @@
         var compdata = this.data;
         this.el.addEventListener('click', function () {
           var plotdata = window.value;
-          var idx = this.parentNode.parentNode.getAttribute("value");
+          var idx = this.parentNode.parentNode.getAttribute('value');
           var plotID = document.getElementById('plotbox' + idx);
-          var geo = plotID.getAttribute("geometry");
+          var geo = plotID.getAttribute('geometry');
           var range = [];
           switch (compdata.axis) {
             case 'x':
@@ -32,7 +32,7 @@
           }
           var origin = d3.select('#origin' + idx);
           var mappedArray = d3.entries(plotdata[0]),
-            key = this.getAttribute("id"),
+            key = this.getAttribute('id'),
             extent = d3.extent(plotdata, function (d) { return +d[key]; });
           var scale = d3.scaleLinear()
             .domain(extent)
@@ -47,23 +47,23 @@
             .attr('animation', function (d) {
               return 'property: position; to: ' + scale(d[key]) + ' 0 0;dur:1500;easing:linear';
             })
-          if (compdata.axis=='z'){
+          if (compdata.axis == 'z') {
             var colorScale = d3.scaleSequential()
               .domain(extent)
               .interpolator(d3.interpolateInferno);
-            selection.attr("color",function(d){return colorScale(d[key]);});
+            selection.attr('color', function (d) { return colorScale(d[key]); });
           }
           selection.attr('animation', function (d) {
             var pos = '0 0 0';
             switch (compdata.axis) {
               case 'x':
-                pos = scale(d[key]) + ' ' + d3.select(this).attr("position").y + ' ' + d3.select(this).attr("position").z;
+                pos = scale(d[key]) + ' ' + d3.select(this).attr('position').y + ' ' + d3.select(this).attr('position').z;
                 break;
               case 'y':
-                pos = d3.select(this).attr("position").x + ' ' + scale(d[key]) + ' ' + d3.select(this).attr("position").z;
+                pos = d3.select(this).attr('position').x + ' ' + scale(d[key]) + ' ' + d3.select(this).attr('position').z;
                 break;
               case 'z':
-                pos = d3.select(this).attr("position").x + ' ' + d3.select(this).attr("position").y + ' ' + scale(d[key]);
+                pos = d3.select(this).attr('position').x + ' ' + d3.select(this).attr('position').y + ' ' + scale(d[key]);
             }
             //console.log(pos);
             return 'property: position; to: ' + pos + ';dur:1500;easing:linear';
@@ -72,7 +72,6 @@
       }
     });
   </script>
-
   <script> // cursor listener for the show button 
     AFRAME.registerComponent('show_cursorlistener', {
       init: function () {
@@ -85,22 +84,22 @@
           this.parentNode.querySelector('#z' + val).setAttribute('visible', 'true');
           this.parentNode.querySelector('#z' + val).setAttribute('class', 'clickable');
           // create subplane to show the graph on
-          if (!document.getElementById("plotbox" + val)) {
-            var plotbox = document.createElement("a-box");
-            plotbox.setAttribute("id", "plotbox" + val);
-            console.log("plotbox created");
+          if (!document.getElementById('plotbox' + val)) {
+            var plotbox = document.createElement('a-box');
+            plotbox.setAttribute('id', 'plotbox' + val);
+            console.log('plotbox created');
           } else {
-            console.log("plotbox selected")
-            var plotbox = document.getElementById("plotbox" + val);
+            console.log('plotbox selected')
+            var plotbox = document.getElementById('plotbox' + val);
           }
-          plotbox.setAttribute("position", { x: -.5, y: 0, z: .055 });
-          plotbox.setAttribute("geometry", "height:5");
-          plotbox.setAttribute("geometry", "width:5");
-          plotbox.setAttribute("geometry", "depth:.1");
-          plotbox.setAttribute("material", "color:green");
-          plotbox.setAttribute("material", "opacity:.1");
-          plotbox.setAttribute("class","not-clickable");
-          d3.csv("simulated_data_2_random_2000.csv", type, function (error, data) {
+          plotbox.setAttribute('position', { x: -.5, y: 0, z: .055 });
+          plotbox.setAttribute('geometry', 'height:5');
+          plotbox.setAttribute('geometry', 'width:5');
+          plotbox.setAttribute('geometry', 'depth:.1');
+          plotbox.setAttribute('material', 'color:green');
+          plotbox.setAttribute('material', 'opacity:.1');
+          plotbox.setAttribute('class', 'not-clickable');
+          d3.csv('simulated_data_2_random_2000.csv', type, function (error, data) {
             window.value = data;
           });
           //append everything
@@ -127,62 +126,69 @@
       }
     });
   </script>
-  <script> // cursor listener for the x axis
-    AFRAME.registerComponent('x_cursorlistener', {
-      schema:{
-        on: {type:'boolean',default: false}
+  <script> // cursor listener for the axis
+    AFRAME.registerComponent('axis_cursorlistener', {
+      schema: {
+        axis: {type: 'string', default: 'x'},
+        on: { type: 'boolean', default: false }
       },
       init: function () {
-        var switched = this.data;
-        var idx = this.el.parentNode.getAttribute("value");  this.el.addEventListener('click', function () {
-          if (switched.on){
-            switched.on = false;
-            var buttonchildren = d3.select(this).selectAll(".clickable")
-            buttonchildren.attr('animation','property:position;to: 0 0 0;dur:1500;easing:linear');
-            setTimeout(function(){
-                buttonchildren.remove();
-                document.getElementById("x" + idx).setAttribute("material", "color:gray");
-              },1500
+        var option = this.data;
+        var idx = this.el.parentNode.getAttribute('value'); this.el.addEventListener('click', function () {
+          if (option.on) {
+            option.on = false;
+            var buttonchildren = d3.select(this).selectAll('.clickable')
+            buttonchildren.attr('animation', 'property:position;to: 0 0 0;dur:1500;easing:linear');
+            setTimeout(function () {
+              buttonchildren.remove();
+              document.getElementById(option.axis + idx).setAttribute('material', 'color:grey');
+            }, 1500
             );
-          }else{ 
-          switched.on = true;
-          var plotID = document.getElementById('plotbox' + idx);
-          var geo = plotID.getAttribute("geometry");
-          d3.select(plotID).append('a-entity')
-            .attr('id', 'origin' + idx)
-            .attr('position', (-geo.width / 2) + ' ' + (-geo.height / 2) + ' 0');
-          var origin = d3.select('#origin' + idx);
-          //actual plotting
-          var xshift = 0;
-          var yshift = 0;
-          var data = window.value;
-          d3.entries(data[0]).forEach(function (d) {
-            if (d.key != "" && d.key != "sample_id") {
-              xshift++;
-              if (xshift > 5) {
-                xshift = 1;
-                yshift = yshift - 0.75;
-              }
-              var button = document.createElement('a-entity');
-              button.setAttribute('geometry', 'primitive: box');
-              button.setAttribute("geometry", { height: .5, width: .5, depth: .08 });
-              button.setAttribute('animation', 'property:position;to: ' + xshift + ' ' + yshift + ' 0;dur:1500;easing:linear');
-              button.setAttribute('material', 'color', 'grey');
-              button.setAttribute('data_cursorlistener', 'axis: ' + document.getElementById("x" + idx).getAttribute('value'));
-              button.setAttribute('onclick', 'event.stopPropagation()');
-              button.setAttribute('id', d.key);
-              button.setAttribute('class', 'clickable');
-              var buttontext = document.createElement('a-text');
-              buttontext.setAttribute('value', d.key);
-              buttontext.setAttribute('color', 'black');
-              buttontext.setAttribute('align', 'center');
-              buttontext.setAttribute('position', { x: 0, y: 0, z: .045 });
-              button.appendChild(buttontext);
-              document.getElementById("x" + idx).appendChild(button);
-              document.getElementById("x" + idx).setAttribute("material", "color:green");
+          } else {
+            option.on = true;
+            var plotID = document.getElementById('plotbox' + idx);
+            var geo = plotID.getAttribute('geometry');
+            switch (option.axis){
+              case 'x':
+                var origin = d3.select(plotID).append('a-entity')
+                .attr('id', 'origin' + idx)
+                .attr('position', (-geo.width / 2) + ' ' + (-geo.height / 2) + ' 0');
+                line_to = geo.width+' 0 0';
+                break;
+              case 'y':
+                var origin = d3.select('#origin' + idx);
+                line_to = '0 '+geo.height+' 0';
+                break;
+              case 'z':
+                var origin = d3.select('#origin' + idx)
+                  .attr('animation', 'property: position;to:-2.5 -2.5 -2.5;dur:1500;easing:linear');
+                plotID.setAttribute('animation__depth', 'property: geometry.depth;to: 5;dur:1500;easing:linear');
+                plotID.setAttribute('animation__pos', 'property: position;to:-.5 0 2.5;dur:1500;easing:linear');
+                line_to = '0 0 5';
             }
-          });
-          origin.attr("line__x",'start:0 0 0; end: '+ geo.width + ' 0 0;color:gray');
+            console.log(line_to)
+            //actual plotting
+            var shift = [0, 0];
+            var data = window.value;
+            d3.entries(data[0]).forEach(function (d) {
+              if (d.key != '' && d.key != 'sample_id' && d.key != 'value') {
+                shift[0]++;
+                if (shift[0] > 5) {
+                  shift[0] = 1;
+                  shift[1] = - 0.75;
+                }
+                // create data buttons [functions]
+                var button = data_buttons(d, shft = shift, ax=option.axis);
+                var btext = buttontext(d);
+                button.appendChild(btext);
+                // appending the buttons to the axis button
+                document.getElementById(option.axis + idx).appendChild(button);
+                document.getElementById(option.axis + idx).setAttribute('material', 'color:green');
+              }
+            });
+            if (origin.select('line__'+option.axis).empty()){
+              origin.attr('line__'+option.axis, 'start: 0 0 0; end: ' + line_to + ';color:gray');
+            }
           }
         });
       }
@@ -191,145 +197,37 @@
       d.value = +d.value;
       return d;
     };
-  </script>
-  <script> // cursor listener for the y axis
-    AFRAME.registerComponent('y_cursorlistener', {
-      schema:{
-        on: {type:'boolean',default: false}
-      },
-      init: function () {
-        var switched = this.data;
-        var idx = this.el.parentNode.getAttribute("value");
-        this.el.addEventListener('click', function () {
-          if (switched.on){
-            switched.on = false;
-            var buttonchildren = d3.select(this).selectAll(".clickable")
-            buttonchildren.attr('animation','property:position;to: 0 0 0;dur:1500;easing:linear');
-            setTimeout(function(){
-                buttonchildren.remove();
-                document.getElementById("y" + idx).setAttribute("material", "color:gray");
-              },1500
-            );
-          }else{ 
-          switched.on = true;
-          var plotID = document.getElementById('plotbox' + idx);
-          var geo = plotID.getAttribute("geometry");
-          var yRange = [0, geo.height];
-          var origin = d3.select('#origin' + idx);
-          //actual plotting
-          var xshift = 0;
-          var yshift = 0;
-          var data = window.value;
-          d3.entries(data[0]).forEach(function (d) {
-            if (d.key != "" && d.key != "sample_id") {
-              yshift--;
-              if (yshift < -5) {
-                xshift = xshift + 0.75;
-                yshift = -1;
-              }
-              var button = document.createElement('a-entity');
-              button.setAttribute('geometry', 'primitive: box');
-              button.setAttribute("geometry", { height: .5, width: .5, depth: .08 });
-              button.setAttribute('animation', 'property:position;to: ' + xshift + ' ' + yshift + ' 0;dur:1500;easing:linear');
-              button.setAttribute('material', 'color', 'grey');
-              button.setAttribute('data_cursorlistener', 'axis: ' + document.getElementById("y" + idx).getAttribute('value'));
-              button.setAttribute('onclick', 'event.stopPropagation()');
-              button.setAttribute('id', d.key);
-              button.setAttribute('class', 'clickable');
-              var buttontext = document.createElement('a-text');
-              buttontext.setAttribute('value', d.key);
-              buttontext.setAttribute('color', 'black');
-              buttontext.setAttribute('align', 'center');
-              buttontext.setAttribute('position', { x: 0, y: 0, z: .045 });
-              button.appendChild(buttontext);
-              document.getElementById("y" + idx).appendChild(button);
-              document.getElementById("y" + idx).setAttribute("material", "color:green");
-            }
-          });
-          origin.attr("line__y",'start:0 0 0; end: 0 '+ geo.height + ' 0;color:gray');
-          }
-        });
-      }
-    });
-    function type(d) {
-      d.value = +d.value;
-      return d;
+    function data_buttons(d, shft = [0, 0], ax = 'x', c = 'grey') {
+      switch (ax){
+        case 'x': 
+          break;
+        case 'y': 
+          shft = [-shft[1],-shft[0]];
+          break;
+        case 'z':
+          shft = [shft[0],-shft[1]];
+      };
+      var button = document.createElement('a-entity');
+      button.setAttribute('geometry', 'primitive: box');
+      button.setAttribute('geometry', { height: .5, width: .5, depth: .08 });
+      button.setAttribute('animation', 'property:position;to: ' + shft[0] + ' ' + shft[1] + ' 0;dur:1500;easing:linear');
+      button.setAttribute('material', 'color', c);
+      button.setAttribute('data_cursorlistener', 'axis: ' + ax);
+      button.setAttribute('onclick', 'event.stopPropagation()');
+      button.setAttribute('id', d.key);
+      button.setAttribute('class', 'clickable');
+      return button;
     };
+    function buttontext(d, c = 'black') {
+      var buttontext = document.createElement('a-text');
+      buttontext.setAttribute('value', d.key);
+      buttontext.setAttribute('color', c);
+      buttontext.setAttribute('align', 'center');
+      buttontext.setAttribute('position', { x: 0, y: 0, z: .045 });
+      return buttontext;
+    }
   </script>
-  <script> // cursor listener for the z axis
-    AFRAME.registerComponent('z_cursorlistener', {
-      schema:{
-        on: {type:'boolean',default: false}
-      },
-      init: function () {
-        var switched = this.data;
-        var idx = this.el.parentNode.getAttribute("value");
-        this.el.addEventListener('click', function () {
-          if (switched.on){
-            switched.on = false;
-            var buttonchildren = d3.select(this).selectAll(".clickable")
-            buttonchildren.attr('animation','property:position;to: 0 0 0;dur:1500;easing:linear');
-            setTimeout(function(){
-                buttonchildren.remove();
-                document.getElementById("z" + idx).setAttribute("material", "color:gray");
-              },1500
-            );
-          }else{ 
-          switched.on = true;
-          var plotID = document.getElementById('plotbox' + idx);
-          plotID.setAttribute('animation__depth', 'property: geometry.depth;to: 5;dur:1500;easing:linear');
-          plotID.setAttribute('animation__pos', 'property: position;to:-.5 0 2.5;dur:1500;easing:linear');
-          var geo = plotID.getAttribute("geometry");
-          var zRange = [0, geo.height];
-          var origin = d3.select('#origin' + idx)
-            .attr('animation', 'property: position;to:-2.5 -2.5 -2.5;dur:1500;easing:linear');
-          //actual plotting
-          var xshift = 0;
-          var yshift = 0;
-          var data = window.value;
-          d3.entries(data[0]).forEach(function (d) {
-            if (d.key != "" && d.key != "sample_id") {
-              xshift++;
-              if (xshift > 5) {
-                xshift = 1;
-                yshift = yshift + 0.75;
-              }
-              var button = document.createElement('a-entity');
-              button.setAttribute('geometry', 'primitive: box');
-              button.setAttribute("geometry", { height: .5, width: .5, depth: .08 });
-              button.setAttribute('animation', 'property:position;to: ' + xshift + ' ' + yshift + ' 0;dur:1500;easing:linear');
-              button.setAttribute('material', 'color', 'grey');
-              button.setAttribute('data_cursorlistener', 'axis: ' + document.getElementById("z" + idx).getAttribute('value'));
-              button.setAttribute('onclick', 'event.stopPropagation()');
-              button.setAttribute('id', d.key);
-              button.setAttribute('class', 'clickable');
-              var buttontext = document.createElement('a-text');
-              buttontext.setAttribute('value', d.key);
-              buttontext.setAttribute('color', 'black');
-              buttontext.setAttribute('align', 'center');
-              buttontext.setAttribute('position', { x: 0, y: 0, z: .045 });
-              button.appendChild(buttontext);
-              document.getElementById("z" + idx).appendChild(button);
-              document.getElementById("z" + idx).setAttribute("material", "color:green");
-            }
-          });
-          setTimeout(function() {
-            origin.attr("line__z",'start:0 0 0; end: 0 0 '+ geo.depth+ ';color:gray');
-          },1500);
-          }
-        });
-      }
-    });
-    function type(d) {
-      d.value = +d.value;
-      return d;
-    };
-  </script>
-  <!-- <script>
-             
-              plotID.setAttribute("line__z",'start:'+ (-geo.width/2) + ' ' + (-geo.height/2) + ' ' + (-d3.select('#plotbox4').attr("geometry").depth/2)+'; end: '+ (-geo.width/2) + ' ' + (-geo.height/2) + ' ' + (d3.select('#plotbox4').attr("geometry").depth/2)+';color:black');
-              </script> -->
-  <script> // script for the creation of an octagonal "room"
+  <script> // script for the creation of an octagonal 'room'
     AFRAME.registerComponent('room', {
       init: function () {
         var space = document.querySelector('a-scene');
@@ -339,7 +237,7 @@
         for (i = 0; i < 8; i++) {
           var sheet = document.createElement('a-entity');
           var alpha = i / 4 * Math.PI;
-          sheet.setAttribute("id", 'mycanvas' + i);
+          sheet.setAttribute('id', 'mycanvas' + i);
           //sheet.setAttribute('class', 'mycanvas');
           sheet.setAttribute('geometry', {
             primitive: 'plane',
@@ -363,7 +261,7 @@
     AFRAME.registerComponent('buttons', {
       init: function () {
         var val = this.el.getAttribute('value');
-        var b = ["x", "y", "z", "show", "hide"];
+        var b = ['x', 'y', 'z', 'show', 'hide'];
         var bx = [0.15, 0.775, 0.15, 0.2, 0.8].map(function (x) { return 10 * (x - .5) });
         var by = [0.3, 0.65, 0.7, 0.2, 0.2].map(function (x) { return 15 * (x - .5) });
         for (j = 0; j < 5; j++) {
@@ -378,7 +276,11 @@
           });
           button.setAttribute('material', 'color', 'grey');
           button.setAttribute('position', { x: bx[j], y: by[j], z: 0 });
-          button.setAttribute(b[j] + '_cursorlistener', '');
+          if (b[j]=="x"||b[j]=="y"||b[j]=="z"){
+            button.setAttribute('axis_cursorlistener', {axis:b[j],on:false});  
+          }else{
+            button.setAttribute(b[j] + '_cursorlistener', '');
+          }
           button.setAttribute('rotation', { x: 0, y: 0, z: 0 });
           if (j < 3) {
             button.setAttribute('visible', 'false');
@@ -396,9 +298,9 @@
       }
     });
   </script>
-  <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvg/dist/browser/canvg.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.0.0/lodash.min.js"></script>
+  <script src='https://d3js.org/d3.v4.min.js'></script>
+  <script src='https://cdn.jsdelivr.net/npm/canvg/dist/browser/canvg.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.0.0/lodash.min.js'></script>
 </head>
 <style>
   text {
@@ -423,23 +325,22 @@
 </style>
 
 <body>
-  <a-scene background="color:#CECECE" room>
+  <a-scene background='color:#CECECE' room>
     <a-assets>
-      <img id="wood" src="1-fine-wood-seamless.jpg">
+      <img id='wood' src='1-fine-wood-seamless.jpg'>
+      <img id='sky' src='mild800.jpg'>
     </a-assets>
     <a-entity camera look-controls wasd-controls>
       <a-entity
-        animation__click="property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 0.5 0.5 0.5; to: 1 1 1"
-        animation__fusing="property: scale; startEvents: fusing; easing: easeInCubic; dur: 1500; from: 1 1 1; to: 0.5 0.5 0.5"
-        animation__mouseleave="property: scale; startEvents: mouseleave; easing: easeInCubic; dur: 500; to: 1 1 1"
-        raycaster = "objects: .clickable" 
-        cursor="fuse:true"
-        position="0 0 -1"
-        geometry="primitive:ring; radiusInner:0.02; radiusOuter:0.03" material="color:black; shader:flat">
+        animation__click='property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 0.5 0.5 0.5; to: 1 1 1'
+        animation__fusing='property: scale; startEvents: fusing; easing: easeInCubic; dur: 1500; from: 1 1 1; to: 0.5 0.5 0.5'
+        animation__mouseleave='property: scale; startEvents: mouseleave; easing: easeInCubic; dur: 500; to: 1 1 1'
+        raycaster='objects: .clickable' cursor='fuse:true' position='0 0 -1'
+        geometry='primitive:ring; radiusInner:0.02; radiusOuter:0.03' material='color:black; shader:flat'>
       </a-entity>
     </a-entity>
-    <a-sky color="cyan"> </a-sky>
-    <a-plane color="black" position="0 -5 0" height="20" width="20" repeat="10 10" rotation="-90 0 0"></a-plane>
+    <a-sky color='skyblue'> </a-sky>
+    <a-plane src='#wood' position='0 -5 0' height='20' width='20' repeat='10 10' rotation='-90 0 0'></a-plane>
   </a-scene>
 </body>
 
