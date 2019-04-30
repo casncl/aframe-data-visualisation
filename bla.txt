@@ -1,0 +1,5 @@
+teleport 
+voice control
+gesture control
+
+possible to embed into aframe

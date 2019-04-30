@@ -257,6 +257,22 @@
       }
     });
   </script>
+  <script>
+    AFRAME.registerComponent('tiles',{
+      init: function () {
+        var m,n;
+        var nTiles = 20;
+        for (m=0;m<nTiles;m++){
+          for (n=0;n<nTiles;n++){
+            // var tile = d3.select('#floor').append('a-entity')
+            //   .attr('geometry','primitive','plane')
+            //   .attr('geometry','height:1;width:1;depth:0.01')
+            //   .attr('position',(m-9.5)+' '+0+' '+(n-9.5));
+          };
+        };
+      }
+    });
+  </script>
   <script> // creating the buttons on the walls
     AFRAME.registerComponent('buttons', {
       init: function () {
@@ -325,7 +341,7 @@
 </style>
 
 <body>
-  <a-scene background='color:#CECECE' room>
+  <a-scene background='color:#CECECE' room tiles>
     <a-assets>
       <img id='wood' src='1-fine-wood-seamless.jpg'>
       <img id='sky' src='mild800.jpg'>
@@ -340,8 +356,9 @@
       </a-entity>
     </a-entity>
     <a-sky color='skyblue'> </a-sky>
-    <a-plane src='#wood' position='0 -5 0' height='20' width='20' repeat='10 10' rotation='-90 0 0'></a-plane>
+    <a-plane id='floor' src='#wood' position='0 -5 0' height='20' width='20' repeat='10 10' rotation='-90 0 0'></a-plane>
   </a-scene>
+  
 </body>
 
 </html>
