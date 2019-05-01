@@ -257,17 +257,44 @@
       }
     });
   </script>
-  <script>
+  <script> // creating teleport options
     AFRAME.registerComponent('tiles',{
       init: function () {
         var m,n;
         var nTiles = 20;
         for (m=0;m<nTiles;m++){
           for (n=0;n<nTiles;n++){
-            // var tile = d3.select('#floor').append('a-entity')
-            //   .attr('geometry','primitive','plane')
-            //   .attr('geometry','height:1;width:1;depth:0.01')
-            //   .attr('position',(m-9.5)+' '+0+' '+(n-9.5));
+            var tile = document.createElement('a-entity');
+            tile.setAttribute('geometry',{primitive:'plane',
+              height:1,width:1});
+            tile.setAttribute('position',{x:(m-9.5),y:(n-9.5),z:0.01});
+            tile.setAttribute('material','opacity',0.2);
+            tile.setAttribute('class','clickable');
+            if (Math.sqrt((m-9.5)**2+(n-9.5)**2)<10.5) {
+              tile.setAttribute('line__l','start:-.5 -.5 0; end:.5 -.5 0;color:black;visible:false');
+              tile.setAttribute('line__t','start:.5 -.5 0; end:.5 .5 0;color:black;visible:false');
+              tile.setAttribute('line__r','start:.5 .5 0; end:-.5 .5 0;color:black;visible:false');
+              tile.setAttribute('line__b','start:-.5 .5 0; end:-.5 -.5 0;color:black;visible:false');
+              tile.addEventListener('mouseenter',function() {
+                this.setAttribute('line__l','visible:true');
+                this.setAttribute('line__t','visible:true');
+                this.setAttribute('line__b','visible:true');
+                this.setAttribute('line__r','visible:true');
+              });
+              tile.addEventListener('mouseleave',function() {
+                this.setAttribute('line__l','visible:false');
+                this.setAttribute('line__t','visible:false');
+                this.setAttribute('line__b','visible:false');
+                this.setAttribute('line__r','visible:false');
+              });
+              tile.addEventListener('click',function() {
+                var cam = document.getElementById('camera');
+                cam.setAttribute('position',{x:this.getAttribute('position').x,y:0,z:-this.getAttribute('position').y});
+                console.log(cam.getAttribute('position'));
+              });
+            }
+            var floor = document.getElementById('floor');
+            floor.appendChild(tile);
           };
         };
       }
@@ -346,7 +373,7 @@
       <img id='wood' src='1-fine-wood-seamless.jpg'>
       <img id='sky' src='mild800.jpg'>
     </a-assets>
-    <a-entity camera look-controls wasd-controls>
+    <a-entity id='camera' camera look-controls wasd-controls>
       <a-entity
         animation__click='property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 0.5 0.5 0.5; to: 1 1 1'
         animation__fusing='property: scale; startEvents: fusing; easing: easeInCubic; dur: 1500; from: 1 1 1; to: 0.5 0.5 0.5'
