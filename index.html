@@ -172,6 +172,19 @@
                 document.getElementById('y'+idx).appendChild(buttons('y','.3 .65 0','>',idx));
                 document.getElementById('z'+idx).appendChild(buttons('z','-.3 .65 0','<',idx));
                 document.getElementById('z'+idx).appendChild(buttons('z','.3 .65 0','>',idx));
+                var ctr_button = document.createElement('a-entity');
+                ctr_button.setAttribute('id','center');
+                ctr_button.setAttribute('geometry','primitive:box;height:.3;width:.65;depth:.08');
+                ctr_button.setAttribute('material','color','grey');
+                ctr_button.setAttribute('class','clickable');
+                ctr_button.setAttribute('onclick', 'event.stopPropagation()');
+                ctr_button.appendChild(buttontext('center'));
+                ctr_button.setAttribute('position','0 -5 0');
+                ctr_button.addEventListener('click', function(){
+                  plotID.setAttribute('animation__rot','property:rotation;to: 0 0 0;dur:1500;easing:linear')
+                });
+                var wall = document.getElementById('mycanvas'+idx);
+                wall.appendChild(ctr_button);
             }
             console.log(line_to)
             //actual plotting
@@ -243,7 +256,6 @@
       b.setAttribute('onclick', 'event.stopPropagation()');
       b.appendChild(buttontext(txt));
       b.setAttribute('position',pos);
-      // b.setAttribute('rotatePlot','axis:'+ax+';nofWall:'+idx);
       b.addEventListener('mouseenter',function() {
         window.clearInterval(rotate);
         rotate = setInterval(function(){rotatePlot(ax,idx,txt)},100);
