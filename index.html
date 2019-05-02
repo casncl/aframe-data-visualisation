@@ -140,6 +140,7 @@
     //     })
     //   }
     // });
+    var rotate ;
     AFRAME.registerComponent('axis_cursorlistener', {
       schema: {
         axis: {type: 'string', default: 'x'},
@@ -257,18 +258,23 @@
       b.setAttribute('position',pos);
       // b.setAttribute('rotatePlot','axis:'+ax+';nofWall:'+idx);
       b.addEventListener('mouseenter',function() {
-        window.clearInterval(rotation);
-        var rotation = setInterval(function(){rotatePlot(ax,idx,txt)},100);
+        window.clearInterval(rotate);
+        rotate = setInterval(function(){rotatePlot(ax,idx,txt)},100);
+      });
+      b.addEventListener('mouseleave',function(){
+        window.clearInterval(rotate);
       });
       return b;
     };
     function rotatePlot(a,n,d){
       var plot = document.getElementById('plotbox'+n);
+      var rot = plot.getAttribute('rotation');
       if (d == '<'){
-        plot.setAttribute('rotation',a,plot.getAttribute('rotation')[a]-1);  
+        rot[a]=rot[a]-1;
       }else if(d=='>'){
-        plot.setAttribute('rotation',a,plot.getAttribute('rotation')[a]+1);
+        rot[a]=rot[a]+1;
       }
+      plot.setAttribute('rotation',rot);
     }
   </script>
   <script> // script for the creation of an octagonal 'room'
