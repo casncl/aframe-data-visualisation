@@ -127,20 +127,7 @@
     });
   </script>
   <script> // cursor listener for the axis
-    // AFRAME.registerComponent('rotatePlot',{
-    //   schema:{
-    //     axis:{type:'string',default:'x'},
-    //     nofWall:{type:'int',defualt:0}
-    //   },
-    //   init: function(){
-    //     this.el.addEventListener('mouseenter',function() {
-    //       setInterval()
-    //       var plot = document.getElementById('plotbox'+nofWall);
-    //       plot.setAttribute('rotation',axis,plot.getAttribute('rotation')[axis]+1);
-    //     })
-    //   }
-    // });
-    var rotate ;
+   var rotate ;
     AFRAME.registerComponent('axis_cursorlistener', {
       schema: {
         axis: {type: 'string', default: 'x'},
@@ -423,7 +410,7 @@
       <img id='wood' src='1-fine-wood-seamless.jpg'>
       <img id='sky' src='mild800.jpg'>
     </a-assets>
-    <a-entity id='camera' camera look-controls wasd-controls>
+    <a-entity id='camera' camera look-controls>
       <a-entity
         animation__click='property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 0.5 0.5 0.5; to: 1 1 1'
         animation__fusing='property: scale; startEvents: fusing; easing: easeInCubic; dur: 1500; from: 1 1 1; to: 0.5 0.5 0.5'
