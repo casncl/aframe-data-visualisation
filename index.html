@@ -164,15 +164,15 @@
                 plotID.setAttribute('animation__depth', 'property: geometry.depth;to: 5;dur:1500;easing:linear');
                 plotID.setAttribute('animation__pos', 'property: position;to:-.5 0 3;dur:1500;easing:linear');
                 line_to = '0 0 5';
-                document.getElementById('x'+idx).appendChild(buttons('x','-.3 .65 0','<',idx));
-                document.getElementById('x'+idx).appendChild(buttons('x','.3 .65 0','>',idx));
-                document.getElementById('y'+idx).appendChild(buttons('y','-.3 .65 0','<',idx));
-                document.getElementById('y'+idx).appendChild(buttons('y','.3 .65 0','>',idx));
-                document.getElementById('z'+idx).appendChild(buttons('z','-.3 .65 0','<',idx));
-                document.getElementById('z'+idx).appendChild(buttons('z','.3 .65 0','>',idx));
+                var ax=['x','y','z'],
+                  p=['-.3 .65 0','.3 .65 0'],
+                  s=['<','>'],i,j;
+                for (i=0;i<3;i++){
+                  for (j=0;j<2;j++){
+                    document.getElementById(ax[i]+idx).appendChild(rot_button(ax[i],p[j],s[j],idx));
+                  }
+                }
                 var ctr_button = button('','0 -4.75 0',[.3,.65,.08],'center',idx)
-                ctr_button.setAttribute('class','clickable');
-                ctr_button.setAttribute('onclick', 'event.stopPropagation()');
                 ctr_button.addEventListener('click', function(){
                   plotID.removeAttribute('animation__rot');
                   plotID.setAttribute('animation__rot','property:rotation;to: 0 0 0;dur:1500;easing:linear;autoplay:true');
@@ -206,17 +206,38 @@
         });
       }
     });
-    
+    AFRAME.registerComponent('axis_buttons', {
+      init: function () {
+        var val = this.el.getAttribute('value');
+        var b = ['x', 'y', 'z', 'show', 'hide'];
+        var bx = [0.15, 0.775, 0.15, 0.2, 0.8].map(function (x) { return 10 * (x - .5) });
+        var by = [0.3, 0.65, 0.7, 0.2, 0.2].map(function (x) { return 15 * (x - .5) });
+        for (j = 0; j < 5; j++) {
+          var ax_button = button(name='',pos=bx[j]+' '+by[j]+' 0',size=[.5,.75,.1],txt=b[j],idx=val);
+          ax_button.setAttribute('value', b[j]);
+          if (b[j]=="x"||b[j]=="y"||b[j]=="z"){
+            ax_button.setAttribute('axis_cursorlistener', {axis:b[j],on:false});  
+          }else{
+            ax_button.setAttribute(b[j] + '_cursorlistener', '');
+          }
+          if (j < 3) {
+            ax_button.setAttribute('visible', 'false');
+            ax_button.removeAttribute('class', 'clickable');
+          } 
+          this.el.appendChild(ax_button);
+        }
+      }
+    });
     function type(d) {
       d.value = +d.value;
       return d;
     };
-    function buttontext(text, c = 'black') {
+    function buttontext(text, c = 'black',d=.05) {
       var buttontext = document.createElement('a-text');
       buttontext.setAttribute('value', text);
       buttontext.setAttribute('color', c);
       buttontext.setAttribute('align', 'center');
-      buttontext.setAttribute('position', { x: 0, y: 0, z: .045 });
+      buttontext.setAttribute('position', { x: 0, y: 0, z: d });
       return buttontext;
     };
     function button(name='', pos='0 0 0',size=[.5,.5,.3],txt='',idx=0,c=['grey','black']){
@@ -229,7 +250,9 @@
         depth:size[2]});
       new_button.setAttribute('material','color',c[0]);
       new_button.setAttribute('position',pos);
-      new_button.appendChild(buttontext(txt,c[1]));
+      new_button.setAttribute('class','clickable');
+      new_button.setAttribute('onclick', 'event.stopPropagation()');
+      new_button.appendChild(buttontext(txt,c[1]),(size[2]/2+0.005));
       return new_button;
     };
     function data_buttons(d, shft = [0, 0], ax = 'x', c = 'grey') {
@@ -245,16 +268,13 @@
       var new_data_b = button(ax,pos='0 0 0',size=[.5,.75,.08],txt=d.key);
       new_data_b.setAttribute('animation', 'property:position;to: ' + shft[0] + ' ' + shft[1] + ' 0;dur:1500;easing:linear');
       new_data_b.setAttribute('data_cursorlistener', 'axis: ' + ax);
-      new_data_b.setAttribute('onclick', 'event.stopPropagation()');
       new_data_b.setAttribute('value', d.key);
+      new_data_b.removeAttribute('class');
       new_data_b.setAttribute('class', 'data_click');
       return new_data_b;
     };
-    
-    function buttons(ax='x',pos='0 0 0',txt='',idx=0){
+    function rot_button(ax='x',pos='0 0 0',txt='',idx=0){
       var b = button(ax,pos,size=[.3,.3,.08],txt=txt,idx=idx)
-      b.setAttribute('class','clickable');
-      b.setAttribute('onclick', 'event.stopPropagation()');
       b.addEventListener('mouseenter',function() {
         window.clearInterval(rotate);
         rotate = setInterval(function(){rotatePlot(ax,idx,txt)},100);
@@ -286,19 +306,15 @@
           var sheet = document.createElement('a-entity');
           var alpha = i / 4 * Math.PI;
           sheet.setAttribute('id', 'mycanvas' + i);
-          //sheet.setAttribute('class', 'mycanvas');
           sheet.setAttribute('geometry', {
             primitive: 'plane',
             height: h,
             width: w
           });
-          sheet.setAttribute('material', {
-            metalness: 0,
-            color: '#f0f0f0'
-          });
+          sheet.setAttribute('material','color', '#f0f0f0');
           sheet.setAttribute('position', { x: 10 * Math.sin(alpha), y: 1, z: 10 * Math.cos(alpha) });
           sheet.setAttribute('rotation', { x: 0, y: (i - 4) / 8 * 360, z: 0 });
-          sheet.setAttribute('buttons', '');
+          sheet.setAttribute('axis_buttons', '');
           sheet.setAttribute('value', i);
           space.appendChild(sheet);
         }
@@ -347,47 +363,6 @@
       }
     });
   </script>
-  <script> // creating the buttons on the walls
-    AFRAME.registerComponent('buttons', {
-      init: function () {
-        var val = this.el.getAttribute('value');
-        var b = ['x', 'y', 'z', 'show', 'hide'];
-        var bx = [0.15, 0.775, 0.15, 0.2, 0.8].map(function (x) { return 10 * (x - .5) });
-        var by = [0.3, 0.65, 0.7, 0.2, 0.2].map(function (x) { return 15 * (x - .5) });
-        for (j = 0; j < 5; j++) {
-          var button = document.createElement('a-entity');
-          button.setAttribute('id', b[j] + val);
-          button.setAttribute('value', b[j]);
-          button.setAttribute('geometry', {
-            primitive: 'box',
-            height: '.5',
-            width: '.75',
-            depth: '.1'
-          });
-          button.setAttribute('material', 'color', 'grey');
-          button.setAttribute('position', { x: bx[j], y: by[j], z: 0 });
-          if (b[j]=="x"||b[j]=="y"||b[j]=="z"){
-            button.setAttribute('axis_cursorlistener', {axis:b[j],on:false});  
-          }else{
-            button.setAttribute(b[j] + '_cursorlistener', '');
-          }
-          button.setAttribute('rotation', { x: 0, y: 0, z: 0 });
-          if (j < 3) {
-            button.setAttribute('visible', 'false');
-          } else {
-            button.setAttribute('class', 'clickable');
-          }
-          var buttontext = document.createElement('a-text');
-          buttontext.setAttribute('value', b[j]);
-          buttontext.setAttribute('color', 'black');
-          buttontext.setAttribute('align', 'center');
-          buttontext.setAttribute('position', { x: 0, y: 0, z: .055 });
-          button.appendChild(buttontext);
-          this.el.appendChild(button);
-        }
-      }
-    });
-  </script>
   <script src='https://d3js.org/d3.v4.min.js'></script>
   <script src='https://cdn.jsdelivr.net/npm/canvg/dist/browser/canvg.min.js'></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.0.0/lodash.min.js'></script>
@@ -413,7 +388,6 @@
     stroke: #000;
   } */
 </style>
-
 <body>
   <a-scene room tiles>
     <a-assets>
@@ -434,7 +408,5 @@
     <a-sky color='skyblue'> </a-sky>
     <a-plane id='floor' src='#wood' position='0 -5 0' height='20' width='20' repeat='10 10' rotation='-90 0 0'></a-plane>
   </a-scene>
-  
 </body>
-
 </html>
