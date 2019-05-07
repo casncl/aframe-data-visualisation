@@ -85,21 +85,22 @@
           if (!document.getElementById('plotbox' + val)) {
             var plotbox = document.createElement('a-box');
             plotbox.setAttribute('id', 'plotbox' + val);
-          }else {
-            var plotbox = document.getElementById('plotbox' + val);
+            plotbox.setAttribute('position', { x: -.5, y: 0, z: .055 });
+            plotbox.setAttribute('geometry', 'height:5');
+            plotbox.setAttribute('geometry', 'width:5');
+            plotbox.setAttribute('geometry', 'depth:.1');
+            plotbox.setAttribute('material', 'color:green');
+            plotbox.setAttribute('material', 'opacity:.1');
+            plotbox.setAttribute('class', 'not-clickable');
+            d3.csv('simulated_data_2_random_2000.csv', type, function (error, data) {
+              window.value = data;
+            });
+            //append everything
+            this.parentNode.appendChild(plotbox);
+          }else{
+            var plotbox = document.getElementById('plotbox'+val);
+            plotbox.setAttribute('visible','true');            
           }
-          plotbox.setAttribute('position', { x: -.5, y: 0, z: .055 });
-          plotbox.setAttribute('geometry', 'height:5');
-          plotbox.setAttribute('geometry', 'width:5');
-          plotbox.setAttribute('geometry', 'depth:.1');
-          plotbox.setAttribute('material', 'color:green');
-          plotbox.setAttribute('material', 'opacity:.1');
-          plotbox.setAttribute('class', 'not-clickable');
-          d3.csv('simulated_data_2_random_2000.csv', type, function (error, data) {
-            window.value = data;
-          });
-          //append everything
-          this.parentNode.appendChild(plotbox);
         });
       }
     });
@@ -112,12 +113,14 @@
     AFRAME.registerComponent('hide_cursorlistener', {
       init: function () {
         this.el.addEventListener('click', function () {
-          this.parentNode.querySelector('#x').setAttribute('visible', 'false');
-          this.parentNode.querySelector('#x').removeAttribute('class', 'clickable');
-          this.parentNode.querySelector('#y').setAttribute('visible', 'false');
-          this.parentNode.querySelector('#y').removeAttribute('class', 'clickable');
-          this.parentNode.querySelector('#z').setAttribute('visible', 'false');
-          this.parentNode.querySelector('#z').removeAttribute('class', 'clickable');
+          var val = this.parentNode.getAttribute('value')
+          this.parentNode.querySelector('#x'+val).setAttribute('visible', 'false');
+          this.parentNode.querySelector('#x'+val).removeAttribute('class', 'clickable');
+          this.parentNode.querySelector('#y'+val).setAttribute('visible', 'false');
+          this.parentNode.querySelector('#y'+val).removeAttribute('class', 'clickable');
+          this.parentNode.querySelector('#z'+val).setAttribute('visible', 'false');
+          this.parentNode.querySelector('#z'+val).removeAttribute('class', 'clickable');
+          this.parentNode.querySelector('#plotbox'+val).setAttribute('visible','false');
         });
       }
     });

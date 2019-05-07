@@ -2,3 +2,7 @@ voice control
 gesture control
 
 possible to embed into aframe
+
+
+TODOs
+look into behaviour of second click of buttons 
