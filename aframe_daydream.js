@@ -1,5 +1,6 @@
 window.addEventListener('gamepadconnected', function(evt){
-    console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
-        e.gamepad.index, e.gamepad.id,
-        e.gamepad.buttons.length, e.gamepad.axes.length);
+    var s = document.getElementById('mycanvas4');
+    var txt = document.createElement('a-text');
+    txt.setAttribute('value','gamepad connected');
+    s.appendChild(txt);
 })
