@@ -52,7 +52,11 @@ AFRAME.registerComponent('data_cursorlistener', {
     },
     init: function () {
         var compdata = this.data;
-        this.el.addEventListener('click', function () {
+        //var sheet_nof = this.el.parentNode.parentNode.getAttribute('value'); 
+        //var key = this.el.getAttribute('value');
+        //console.log(key);
+        this.el.addEventListener('click',// axis_click(event,compdata.axis,sheet_nof,key),false
+        function () {
             var plotdata = window.value;
             var idx = this.parentNode.parentNode.getAttribute('value');
             var plotID = document.getElementById('plotbox' + idx);
@@ -69,8 +73,7 @@ AFRAME.registerComponent('data_cursorlistener', {
                     range = [0, geo.depth];
             }
             var origin = d3.select('#origin' + idx);
-            var mappedArray = d3.entries(plotdata[0]),
-                key = this.getAttribute('value'),
+            var key = this.getAttribute('value'),
                 extent = d3.extent(plotdata, function (d) { return +d[key]; });
             var scale = d3.scaleLinear()
                 .domain(extent)
@@ -104,9 +107,62 @@ AFRAME.registerComponent('data_cursorlistener', {
                 }
                 return 'property: position; to: ' + pos + ';dur:1500;easing:linear';
             });
-        });
+        }
+        );
     }
 });
+// function axis_click(event,ax='x', idx='',key='') {
+//     console.log('click')
+//     var plotdata = window.value;
+//     // var idx = this.parentNode.parentNode.getAttribute('value');
+//     var plotID = document.getElementById('plotbox' + idx);
+//     var geo = plotID.getAttribute('geometry');
+//     var range = [];
+//     switch (ax) {
+//         case 'x':
+//             range = [0, geo.width];
+//             break;
+//         case 'y':
+//             range = [0, geo.height];
+//             break;
+//         case 'z':
+//             range = [0, geo.depth];
+//     }
+//     var origin = d3.select('#origin' + idx);
+//     var extent = d3.extent(plotdata, function (d) { return +d[key]; });
+//     var scale = d3.scaleLinear()
+//         .domain(extent)
+//         .range(range);
+//     var selection = origin.selectAll('a-sphere')
+//         .data(plotdata);
+//     selection.enter().append('a-sphere')
+//         .attr('radius', 0.03)
+//         .attr('color', 'black')
+//         .attr('position', '0 0 0')
+//         .attr('animation', function (d) {
+//             return 'property: position; to: ' + scale(d[key]) + ' 0 0;dur:1500;easing:linear';
+//         })
+//     if (ax == 'z') {
+//         var colorScale = d3.scaleSequential()
+//             .domain(extent)
+//             .interpolator(d3.interpolateInferno);
+//         selection.attr('color', function (d) { return colorScale(d[key]); });
+//     }
+//     selection.attr('animation', function (d) {
+//         var pos = '0 0 0';
+//         switch (ax) {
+//             case 'x':
+//                 pos = scale(d[key]) + ' ' + d3.select(this).attr('position').y + ' ' + d3.select(this).attr('position').z;
+//                 break;
+//             case 'y':
+//                 pos = d3.select(this).attr('position').x + ' ' + scale(d[key]) + ' ' + d3.select(this).attr('position').z;
+//                 break;
+//             case 'z':
+//                 pos = d3.select(this).attr('position').x + ' ' + d3.select(this).attr('position').y + ' ' + scale(d[key]);
+//         }
+//         return 'property: position; to: ' + pos + ';dur:1500;easing:linear';
+//     });
+// };
 // cursor listener for the show and hide button
 AFRAME.registerComponent('show_cursorlistener', {
     init: function () {
@@ -227,8 +283,7 @@ AFRAME.registerComponent('axis_cursorlistener', {
             }
         });
     }
-});
-
+}); // axis buttons 
 function type(d) { // casts entries to numbers
     d.value = +d.value;
     return d;
@@ -241,7 +296,7 @@ function buttontext(text, c = 'black', d = .05) { //creates text for buttons
     buttontext.setAttribute('position', { x: 0, y: 0, z: d });
     return buttontext;
 };
-function button(name = '', pos = '0 0 0', size = [.5, .5, .3], txt = '', idx = 0, c = ['grey', 'black']) { // creates a basic clickable button
+function button(name = '', pos = '0 0 0', size = [.5, .5, .3], txt = '', idx = '', c = ['grey', 'black']) { // creates a basic clickable button
     var new_button = document.createElement('a-entity');
     new_button.setAttribute('id', name + txt + idx);
     new_button.setAttribute('geometry', {
