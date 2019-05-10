@@ -11,8 +11,7 @@ window.addEventListener('shake', shakeEventDidOccur, false);
 function shakeEventDidOccur () {
     //put your own code here etc.
     var canv = document.getElementById('mycanvas4');
-    var color = randomColor();
-    canv.setAttribute('color',color);
+    canv.setAttribute('color','green');
 }
 }
 // creating of an octagonal 'room'
