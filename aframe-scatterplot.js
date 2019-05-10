@@ -10,9 +10,10 @@ window.addEventListener('shake', shakeEventDidOccur, false);
 //shake event callback
 function shakeEventDidOccur () {
     //put your own code here etc.
-    var canv = document.getElementById('mycanvas4')
+    var canv = document.getElementById('mycanvas4');
     var color = randomColor();
     canv.setAttribute('color',color);
+}
 }
 // creating of an octagonal 'room'
 AFRAME.registerComponent('room', {
@@ -97,7 +98,7 @@ AFRAME.registerComponent('data_cursorlistener', {
             var selection = origin.selectAll('a-box')
                 .data(plotdata);
             selection.enter().append('a-box')
-                .attr('geometry', 'height:0.03,width:0.03,depth:0.03')
+                .attr('geometry', 'height:0.03;width:0.03;depth:0.03')
                 .attr('color', 'black')
                 .attr('position', '0 0 0')
                 .attr('animation', function (d) {
@@ -429,4 +430,4 @@ AFRAME.registerComponent('tiles', {
             };
         };
     }
-});
+})
