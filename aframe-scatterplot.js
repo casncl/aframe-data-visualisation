@@ -1,3 +1,19 @@
+window.onload = function() {
+//create a new instance of shake.js.
+var myShakeEvent = new Shake({
+    threshold: 15
+});
+// start listening to device motion
+myShakeEvent.start();
+// register a shake event
+window.addEventListener('shake', shakeEventDidOccur, false);
+//shake event callback
+function shakeEventDidOccur () {
+    //put your own code here etc.
+    var canv = document.getElementById('mycanvas4')
+    var color = randomColor();
+    canv.setAttribute('color',color);
+}
 // creating of an octagonal 'room'
 AFRAME.registerComponent('room', {
     init: function () {
@@ -78,10 +94,10 @@ AFRAME.registerComponent('data_cursorlistener', {
             var scale = d3.scaleLinear()
                 .domain(extent)
                 .range(range);
-            var selection = origin.selectAll('a-sphere')
+            var selection = origin.selectAll('a-box')
                 .data(plotdata);
-            selection.enter().append('a-sphere')
-                .attr('radius', 0.03)
+            selection.enter().append('a-box')
+                .attr('geometry', 'height:0.03,width:0.03,depth:0.03')
                 .attr('color', 'black')
                 .attr('position', '0 0 0')
                 .attr('animation', function (d) {

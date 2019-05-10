@@ -7,11 +7,13 @@
   <meta name='DataVisTest'>
   <link rel='shortcut icon' href=''>
   <script src='https://aframe.io/releases/0.9.0/aframe.min.js'></script>
-  <script src='aframe_daydream.js'></script>
+  <!-- <script src='aframe_daydream.js'></script> -->
+  <script>src='https://github.com/davidmerfield/randomColor.js'</script>
   <script src='aframe-scatterplot.js'></script>
   <script src='https://d3js.org/d3.v4.min.js'></script>
   <script src='https://cdn.jsdelivr.net/npm/canvg/dist/browser/canvg.min.js'></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.0.0/lodash.min.js'></script>
+  <script src='https://github.com/alexgibson/shake.js'></script>
 </head>
 <style>
   text {
@@ -29,7 +31,7 @@
 </style>
 
 <body>
-  <a-scene room tiles>
+  <a-scene stats room tiles>
     <a-assets>
       <img id='wood' src='1-fine-wood-seamless.jpg'>
       <img id='sky' src='mild800.jpg'>
@@ -45,8 +47,8 @@
         </a-entity>
       </a-entity>
     </a-entity>
-    <a-entity daydream-controls raycaster='objects: .clickable,.data_click;showLine:true'>     
-    </a-entity>
+    <!-- <a-entity daydream-controls raycaster='objects: .clickable,.data_click;showLine:true'>     
+    </a-entity> -->
     <a-sky color='skyblue'> </a-sky>
     <a-plane id='floor' src='#wood' position='0 -5 0' height='20' width='20' repeat='10 10' rotation='-90 0 0'>
     </a-plane>
