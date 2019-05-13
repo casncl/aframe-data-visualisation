@@ -35,7 +35,6 @@
   <a-scene stats room tiles>
     <a-assets>
       <img id='wood' src='1-fine-wood-seamless.jpg'>
-      <img id='sky' src='mild800.jpg'>
     </a-assets>
     <a-entity id='rig'>
       <a-entity id='camera' camera look-controls>
@@ -44,13 +43,15 @@
           animation__fusing='property: scale; startEvents: fusing; easing: easeInCubic; dur: 1500; from: 1 1 1; to: 0.5 0.5 0.5'
           animation__mouseleave='property: scale; startEvents: mouseleave; easing: easeInCubic; dur: 500; to: 1 1 1'
           raycaster='objects: .clickable,.data_click' cursor='fuse:true' position='0 0 -1'
-          geometry='primitive:ring; radiusInner:0.02; radiusOuter:0.03' material='color:black; shader:flat'>
+          geometry='primitive:ring; radiusInner:0.02; radiusOuter:0.03' 
+          material='color:black; shader:flat'> 
         </a-entity>
       </a-entity>
     </a-entity>
     <!-- <a-entity daydream-controls raycaster='objects: .clickable,.data_click;showLine:true'>     
+      
     </a-entity> -->
-    <a-sky color='skyblue'> </a-sky>
+    <a-plane id='ceiling' color='skyblue' position='0 8 0' height='20' width='20' rotation='-270 0 0'></a-plane>
     <a-plane id='floor' src='#wood' position='0 -5 0' height='20' width='20' repeat='10 10' rotation='-90 0 0'>
     </a-plane>
   </a-scene>

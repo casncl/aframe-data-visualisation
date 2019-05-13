@@ -391,22 +391,22 @@ function show(buttons = ''){// shows the listed buttons
 AFRAME.registerComponent('tiles', {
     init: function () {
         var m, n;
-        var nTiles = 20;
+        var nTiles = 10;
         for (m = 0; m < nTiles; m++) {
             for (n = 0; n < nTiles; n++) {
                 var tile = document.createElement('a-entity');
                 tile.setAttribute('geometry', {
                     primitive: 'plane',
-                    height: 1, width: 1
+                    height: 2, width: 2
                 });
-                tile.setAttribute('position', { x: (m - 9.5), y: (n - 9.5), z: 0.01 });
+                tile.setAttribute('position', { x: (2*m - 9), y: (2*n - 9), z: 0.01 });
                 tile.setAttribute('material', 'opacity', 0.2);
                 tile.setAttribute('class', 'clickable');
-                if (Math.sqrt((m - 9.5) ** 2 + (n - 9.5) ** 2) < 10.5) {
-                    tile.setAttribute('line__l', 'start:-.5 -.5 0; end:.5 -.5 0;color:black;visible:false');
-                    tile.setAttribute('line__t', 'start:.5 -.5 0; end:.5 .5 0;color:black;visible:false');
-                    tile.setAttribute('line__r', 'start:.5 .5 0; end:-.5 .5 0;color:black;visible:false');
-                    tile.setAttribute('line__b', 'start:-.5 .5 0; end:-.5 -.5 0;color:black;visible:false');
+                if (Math.sqrt((2*m - 9) ** 2 + (2*n - 9) ** 2) < 10.5) {
+                    tile.setAttribute('line__l', 'start:-1 -1 0; end:1 -1 0;color:black;visible:false');
+                    tile.setAttribute('line__t', 'start:1 -1 0; end:1 1 0;color:black;visible:false');
+                    tile.setAttribute('line__r', 'start:1 1 0; end:-1 1 0;color:black;visible:false');
+                    tile.setAttribute('line__b', 'start:-1 1 0; end:-1 -1 0;color:black;visible:false');
                     tile.addEventListener('mouseenter', function () {
                         this.setAttribute('line__l', 'visible:true');
                         this.setAttribute('line__t', 'visible:true');
