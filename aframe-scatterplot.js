@@ -10,7 +10,7 @@ window.addEventListener('shake', shakeEventDidOccur, false);
 //shake event callback
 function shakeEventDidOccur () {
     var canv = document.getElementById('mycanvas4');
-    console.log('shake has happened')
+    console.log('shake has happened');
     console.log(canv);
     canv.setAttribute('color','green');
 }
