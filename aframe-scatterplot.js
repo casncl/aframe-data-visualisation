@@ -13,9 +13,9 @@ function shakeEventDidOccur () {
     console.log('shake has happened');
     console.log(canv);
     if (canv.getAttribute('material').color=='white'){
-        canv.setAttribute('material','color','green')
+        canv.setAttribute('material','color','green');
     } else {
-        canv.setAttribute('material','color','white')
+        canv.setAttribute('material','color','white');
     };
 }
 }
