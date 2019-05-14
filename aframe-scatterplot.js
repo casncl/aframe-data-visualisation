@@ -9,8 +9,8 @@ myShakeEvent.start();
 window.addEventListener('shake', shakeEventDidOccur, false);
 //shake event callback
 function shakeEventDidOccur () {
-    //put your own code here etc.
     var canv = document.getElementById('mycanvas4');
+    console.log('shake has happened')
     canv.setAttribute('color','green');
 }
 }
@@ -127,58 +127,6 @@ AFRAME.registerComponent('data_cursorlistener', {
         );
     }
 });
-// function axis_click(event,ax='x', idx='',key='') {
-//     console.log('click')
-//     var plotdata = window.value;
-//     // var idx = this.parentNode.parentNode.getAttribute('value');
-//     var plotID = document.getElementById('plotbox' + idx);
-//     var geo = plotID.getAttribute('geometry');
-//     var range = [];
-//     switch (ax) {
-//         case 'x':
-//             range = [0, geo.width];
-//             break;
-//         case 'y':
-//             range = [0, geo.height];
-//             break;
-//         case 'z':
-//             range = [0, geo.depth];
-//     }
-//     var origin = d3.select('#origin' + idx);
-//     var extent = d3.extent(plotdata, function (d) { return +d[key]; });
-//     var scale = d3.scaleLinear()
-//         .domain(extent)
-//         .range(range);
-//     var selection = origin.selectAll('a-sphere')
-//         .data(plotdata);
-//     selection.enter().append('a-sphere')
-//         .attr('radius', 0.03)
-//         .attr('color', 'black')
-//         .attr('position', '0 0 0')
-//         .attr('animation', function (d) {
-//             return 'property: position; to: ' + scale(d[key]) + ' 0 0;dur:1500;easing:linear';
-//         })
-//     if (ax == 'z') {
-//         var colorScale = d3.scaleSequential()
-//             .domain(extent)
-//             .interpolator(d3.interpolateInferno);
-//         selection.attr('color', function (d) { return colorScale(d[key]); });
-//     }
-//     selection.attr('animation', function (d) {
-//         var pos = '0 0 0';
-//         switch (ax) {
-//             case 'x':
-//                 pos = scale(d[key]) + ' ' + d3.select(this).attr('position').y + ' ' + d3.select(this).attr('position').z;
-//                 break;
-//             case 'y':
-//                 pos = d3.select(this).attr('position').x + ' ' + scale(d[key]) + ' ' + d3.select(this).attr('position').z;
-//                 break;
-//             case 'z':
-//                 pos = d3.select(this).attr('position').x + ' ' + d3.select(this).attr('position').y + ' ' + scale(d[key]);
-//         }
-//         return 'property: position; to: ' + pos + ';dur:1500;easing:linear';
-//     });
-// };
 // cursor listener for the show and hide button
 AFRAME.registerComponent('show_cursorlistener', {
     init: function () {
