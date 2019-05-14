@@ -24,6 +24,7 @@ AFRAME.registerComponent('touchScreen',{
         this.el.AddEventListener('touchstart',function() {
             var cursor = document.getElementById('cursor');
             intersObjects = cursor.components.raycaster.intersectedEls;
+            console.log(intersObjects);
             var i;
             for (i = 0; i<intersObjects.length;i++){
                 intersObjects.setAttribute('material','color','green');
@@ -31,8 +32,7 @@ AFRAME.registerComponent('touchScreen',{
         })
     }
 });
-var myScreen = AFRAME.scenes[0].canvas;
-myScreen.setAttribute('touchScreen','');
+
 
 // creating of an octagonal 'room'
 AFRAME.registerComponent('room', {
@@ -57,6 +57,9 @@ AFRAME.registerComponent('room', {
             sheet.setAttribute('value', i);
             space.appendChild(sheet);
         }
+        var myScreen = AFRAME.scenes[0].canvas;
+        console.log(myScreen);
+        myScreen.setAttribute('touchScreen','');
     }
 });
 AFRAME.registerComponent('axis_buttons', {// primary buttons on the canvas
