@@ -11,6 +11,7 @@ window.addEventListener('shake', shakeEventDidOccur, false);
 function shakeEventDidOccur () {
     var canv = document.getElementById('mycanvas4');
     console.log('shake has happened')
+    console.log(canv);
     canv.setAttribute('color','green');
 }
 }
