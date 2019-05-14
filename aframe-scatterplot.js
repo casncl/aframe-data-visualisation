@@ -1,24 +1,39 @@
-window.onload = function() {
-//create a new instance of shake.js.
-var myShakeEvent = new Shake({
-    threshold: 5
+// window.onload = function() {
+// //create a new instance of shake.js.
+// var myShakeEvent = new Shake({
+//     threshold: 5
+// });
+// // start listening to device motion
+// myShakeEvent.start();
+// // register a shake event
+// window.addEventListener('shake', shakeEventDidOccur, false);
+// //shake event callback
+// function shakeEventDidOccur () {
+//     var canv = document.getElementById('mycanvas4');
+//     console.log('shake has happened');
+//     console.log(canv);
+//     if (canv.getAttribute('material').color=='white'){
+//         canv.setAttribute('material','color','green');
+//     } else {
+//         canv.setAttribute('material','color','white');
+//     };
+// }
+// }
+AFRAME.registerComponent('touchScreen',{
+    init:function() {
+        this.el.AddEventListener('touchstart',function() {
+            var cursor = document.getElementById('cursor');
+            intersObjects = cursor.components.raycaster.intersectedEls;
+            var i;
+            for (i = 0; i<intersObjects.length;i++){
+                intersObjects.setAttribute('material','color','green');
+            }      
+        })
+    }
 });
-// start listening to device motion
-myShakeEvent.start();
-// register a shake event
-window.addEventListener('shake', shakeEventDidOccur, false);
-//shake event callback
-function shakeEventDidOccur () {
-    var canv = document.getElementById('mycanvas4');
-    console.log('shake has happened');
-    console.log(canv);
-    if (canv.getAttribute('material').color=='white'){
-        canv.setAttribute('material','color','green');
-    } else {
-        canv.setAttribute('material','color','white');
-    };
-}
-}
+var myScreen = AFRAME.scenes[0].canvas;
+myScreen.setAttribute('touchScreen','');
+
 // creating of an octagonal 'room'
 AFRAME.registerComponent('room', {
     init: function () {
