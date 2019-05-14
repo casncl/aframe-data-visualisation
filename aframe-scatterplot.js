@@ -12,7 +12,11 @@ function shakeEventDidOccur () {
     var canv = document.getElementById('mycanvas4');
     console.log('shake has happened');
     console.log(canv);
-    canv.setAttribute('material','color','green');
+    if (canv.getAttribute('material').color=='white'){
+        canv.setAttribute('material','color','green')
+    } else {
+        canv.setAttribute('material','color','white')
+    };
 }
 }
 // creating of an octagonal 'room'
