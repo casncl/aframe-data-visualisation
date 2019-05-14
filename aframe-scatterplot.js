@@ -120,8 +120,11 @@ AFRAME.registerComponent('data_cursorlistener', {
             var selection = origin.selectAll('a-box')
                 .data(plotdata);
             selection.enter().append('a-box')
-                .attr('geometry', 'height:0.03;width:0.03;depth:0.03')
-                .attr('color', 'black')
+                // .attr('geometry','vertexA: 0 .03 0;vertexB:-0.03 -0.03 0;vertexC:0.03 -0.03 0')
+                .attr('geometry', 'height:.03;width:.03;depth:0.03')
+                // .attr('geometry','radiusInner:0.001')
+                // .attr('geometry','radiusOuter:0.03')
+                .attr('material','color:black')
                 .attr('position', '0 0 0')
                 .attr('animation', function (d) {
                     return 'property: position; to: ' + scale(d[key]) + ' 0 0;dur:1500;easing:linear';
