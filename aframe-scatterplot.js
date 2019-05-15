@@ -21,8 +21,9 @@
 // }
 AFRAME.registerComponent('touch-screen',{
     init:function() {
-        
-        this.el.addEventListener('touchstart',function() {
+        const sceneEl = this.el.sceneEl
+        const canvasEl = sceneEl.canvas
+        canvasEl.addEventListener('touchstart',function() {
             console.log('touch');
             var cursor = document.getElementById('cursor');
             console.log(cursor);
@@ -62,8 +63,8 @@ AFRAME.registerComponent('room', {
             sheet.setAttribute('value', i);
             space.appendChild(sheet);
         }
-        var myScreen = AFRAME.scenes[0].canvas;
-        myScreen.setAttribute('touch-screen','');
+        // var myScreen = AFRAME.scenes[0].canvas;
+        // myScreen.setAttribute('touch-screen','');
     }
 });
 AFRAME.registerComponent('axis_buttons', {// primary buttons on the canvas
