@@ -22,7 +22,7 @@
 AFRAME.registerComponent('touch-screen',{
     init:function() {
         this.el.AddEventListener('touchstart',function() {
-            console.log('touch')
+            console.log('touch');
             var cursor = document.getElementById('cursor');
             console.log(cursor);
             intersObjects = cursor.components.raycaster.intersectedEls;
