@@ -31,7 +31,7 @@ AFRAME.registerComponent('touch-screen',{
             console.log(intersObjects);
             var i;
             for (i = 0; i<intersObjects.length;i++){
-                intersObjects.setAttribute('material','color','green');
+                intersObjects[i].setAttribute('material','color','green');
             }      
         })
     }
