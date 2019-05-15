@@ -19,7 +19,7 @@
 //     };
 // }
 // }
-AFRAME.registerComponent('touchScreen',{
+AFRAME.registerComponent('touch-screen',{
     init:function() {
         this.el.AddEventListener('touchstart',function() {
             var cursor = document.getElementById('cursor');
@@ -59,7 +59,7 @@ AFRAME.registerComponent('room', {
         }
         var myScreen = AFRAME.scenes[0].canvas;
         console.log(myScreen);
-        myScreen.setAttribute('touchScreen','');
+        myScreen.setAttribute('touch-screen','');
     }
 });
 AFRAME.registerComponent('axis_buttons', {// primary buttons on the canvas
@@ -117,15 +117,18 @@ AFRAME.registerComponent('data_cursorlistener', {
             var scale = d3.scaleLinear()
                 .domain(extent)
                 .range(range);
-            var selection = origin.selectAll('a-box')
+            var selection = origin.selectAll('a-plane')
                 .data(plotdata);
-            selection.enter().append('a-box')
+            selection.enter().append('a-plane')
                 // .attr('geometry','vertexA: 0 .03 0;vertexB:-0.03 -0.03 0;vertexC:0.03 -0.03 0')
-                .attr('geometry', 'height:.03;width:.03;depth:0.03')
+                .attr('geometry', 'height:.1;width:.1')//;depth:0.03')
                 // .attr('geometry','radiusInner:0.001')
                 // .attr('geometry','radiusOuter:0.03')
+                .attr('material','src:#circle')
+                .attr('material','alphaTest:0.5')
                 .attr('material','color:black')
                 .attr('position', '0 0 0')
+                .attr('look-at','[camera]')
                 .attr('animation', function (d) {
                     return 'property: position; to: ' + scale(d[key]) + ' 0 0;dur:1500;easing:linear';
                 })
