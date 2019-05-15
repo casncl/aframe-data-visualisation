@@ -53,7 +53,9 @@ AFRAME.registerComponent('room', {
             sheet.setAttribute('material', 'color', '#f0f0f0');
             sheet.setAttribute('position', { x: 10 * Math.sin(alpha), y: 1, z: 10 * Math.cos(alpha) });
             sheet.setAttribute('rotation', { x: 0, y: (i - 4) / 8 * 360, z: 0 });
-            sheet.setAttribute('axis_buttons', '');
+            if (i%2){
+                sheet.setAttribute('axis_buttons', '');
+            }
             sheet.setAttribute('value', i);
             space.appendChild(sheet);
         }
@@ -167,9 +169,10 @@ AFRAME.registerComponent('show_cursorlistener', {
                 var plotbox = document.createElement('a-box');
                 plotbox.setAttribute('id', 'plotbox' + val);
                 plotbox.setAttribute('position', { x: -.5, y: 0, z: .055 });
-                plotbox.setAttribute('geometry', 'height:5');
-                plotbox.setAttribute('geometry', 'width:5');
-                plotbox.setAttribute('geometry', 'depth:.1');
+                plotbox.setAttribute('geometry', {
+                    height:5,
+                    width:5,
+                    depth:.1});
                 plotbox.setAttribute('material', 'color:green');
                 plotbox.setAttribute('material', 'opacity:.1');
                 plotbox.setAttribute('class', 'not-clickable');
@@ -284,6 +287,7 @@ function type(d) { // casts entries to numbers
 function buttontext(text, c = 'black', d = .05) { //creates text for buttons
     var buttontext = document.createElement('a-text');
     buttontext.setAttribute('value', text);
+    buttontext.setAttribute('width','5');
     buttontext.setAttribute('color', c);
     buttontext.setAttribute('align', 'center');
     buttontext.setAttribute('position', { x: 0, y: 0, z: d });
@@ -302,7 +306,7 @@ function button(name = '', pos = '0 0 0', size = [.5, .5, .3], txt = '', idx = '
     new_button.setAttribute('position', pos);
     new_button.setAttribute('class', 'clickable');
     new_button.setAttribute('onclick', 'event.stopPropagation()');
-    new_button.appendChild(buttontext(txt, c[1]), (size[2] / 2 + 0.005));
+    new_button.appendChild(buttontext(txt, c[1]), (size[2] / 2 + 0.05));
     return new_button;
 };
 function data_buttons(d, shft = [0, 0], ax = 'x', c = 'grey') { // controls the position and the movement of the variable buttons
