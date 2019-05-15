@@ -387,7 +387,7 @@ AFRAME.registerComponent('tiles', {
                 tile.setAttribute('position', { x: (2*m - 9), y: (2*n - 9), z: 0.01 });
                 tile.setAttribute('material', 'opacity', 0.2);
                 tile.setAttribute('class', 'clickable');
-                if (Math.sqrt((2*m - 9) ** 2 + (2*n - 9) ** 2) < 10.5) {
+                if (Math.sqrt((2*m - 9) ** 2 + (2*n - 9) ** 2) < 9) {
                     tile.setAttribute('line__l', 'start:-1 -1 0; end:1 -1 0;color:black;visible:false');
                     tile.setAttribute('line__t', 'start:1 -1 0; end:1 1 0;color:black;visible:false');
                     tile.setAttribute('line__r', 'start:1 1 0; end:-1 1 0;color:black;visible:false');
