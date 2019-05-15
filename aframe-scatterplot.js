@@ -23,6 +23,7 @@ AFRAME.registerComponent('touch-screen',{
     init:function() {
         this.el.AddEventListener('touchstart',function() {
             var cursor = document.getElementById('cursor');
+            console.log(cursor);
             intersObjects = cursor.components.raycaster.intersectedEls;
             console.log(intersObjects);
             var i;
@@ -60,7 +61,6 @@ AFRAME.registerComponent('room', {
             space.appendChild(sheet);
         }
         var myScreen = AFRAME.scenes[0].canvas;
-        console.log(myScreen);
         myScreen.setAttribute('touch-screen','');
     }
 });
