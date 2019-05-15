@@ -212,6 +212,7 @@ AFRAME.registerComponent('axis_cursorlistener', {
     init: function () {
         var option = this.data;
         var idx = this.el.parentNode.getAttribute('value'); this.el.addEventListener('click', function () {
+            console.log('click');
             if(option.listen){
             if (option.on) { //hide the variable buttons
                 option.listen = false
