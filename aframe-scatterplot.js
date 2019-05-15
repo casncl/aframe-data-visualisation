@@ -206,20 +206,25 @@ var rotate;
 AFRAME.registerComponent('axis_cursorlistener', {
     schema: {
         axis: { type: 'string', default: 'x' },
-        on: { type: 'boolean', default: false }
+        on: { type: 'boolean', default: false },
+        listen: { type:'boolean', default:true }
     },
     init: function () {
         var option = this.data;
         var idx = this.el.parentNode.getAttribute('value'); this.el.addEventListener('click', function () {
+            if(option.listen){
             if (option.on) { //hide the variable buttons
+                option.listen = false
                 option.on = false;
                 var buttonchildren = d3.select(this).selectAll('.data_click')
                 buttonchildren.attr('animation', 'property:position;to: 0 0 0;dur:1500;easing:linear');
                 setTimeout(function () { // deletes the buttons after the animation
                     buttonchildren.remove();
                     document.getElementById(option.axis + idx).setAttribute('material', 'color:grey');
+                    option.listen=true
                 }, 1500);
             } else { // show the axis and the variable buttons
+                option.listen=false;
                 option.on = true;
                 var plotID = document.getElementById('plotbox' + idx);
                 var geo = plotID.getAttribute('geometry');
@@ -279,10 +284,15 @@ AFRAME.registerComponent('axis_cursorlistener', {
                 //  draws axis if there is none
                 if (origin.select('line__' + option.axis).empty()) {
                     origin.attr('line__' + option.axis, 'start: 0 0 0; end: ' + line_to + ';color:gray');
+                setTimeout(function () { 
+                    option.listen=true
+                }, 1500);
                 }
             }
+        }
         });
     }
+
 }); // axis buttons 
 function type(d) { // casts entries to numbers
     d.value = +d.value;
