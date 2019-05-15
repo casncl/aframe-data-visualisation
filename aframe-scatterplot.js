@@ -23,7 +23,7 @@ AFRAME.registerComponent('touch-screen',{
     init:function() {
         const sceneEl = this.el.sceneEl
         const canvasEl = sceneEl.canvas
-        canvasEl.addEventListener('touchstart',function() {
+        canvasEl.addEventListener('touchend',function() {
             console.log('touch');
             var cursor = document.getElementById('cursor');
             console.log(cursor);
