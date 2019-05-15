@@ -24,11 +24,8 @@ AFRAME.registerComponent('touch-screen',{
         const sceneEl = this.el.sceneEl
         const canvasEl = sceneEl.canvas
         canvasEl.addEventListener('touchend',function() {
-            console.log('touch');
             var cursor = document.getElementById('cursor');
-            console.log(cursor);
             intersObjects = cursor.components.raycaster.intersectedEls;
-            console.log(intersObjects);
             var i;
             for (i = 0; i<intersObjects.length;i++){
                 // intersObjects[i].setAttribute('material','color','green');
