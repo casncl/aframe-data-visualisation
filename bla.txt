@@ -5,3 +5,6 @@ possible to embed into aframe
 
 ToDo's
 test out gamepad api
+
+
+axis label ticks and stuff
