@@ -8,3 +8,5 @@ test out gamepad api
 
 
 axis label ticks and stuff
+
+have the data load in bit by bit to not have it freeze?

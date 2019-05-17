@@ -2,8 +2,11 @@
  * Javascript for data visualisation using aframe
  * @author Christian Garske
  */
-
-// listener for the trigger of the google cardboard
+var rotate;
+/**
+ * @desc AFRAME component to listen for a touch on the screen as that emits the
+ * click function
+ */
 AFRAME.registerComponent('touch-screen', {
     init: function () {
         const sceneEl = this.el.sceneEl;
@@ -19,7 +22,9 @@ AFRAME.registerComponent('touch-screen', {
         })
     }
 });
-// creates the walls of an octagonal 'room'
+/**
+ * @desc AFRAME component that creates the octagonal room in the scene
+ */
 AFRAME.registerComponent('room', {
     init: function () {
         var space = document.querySelector('a-scene');
@@ -38,7 +43,7 @@ AFRAME.registerComponent('room', {
             sheet.setAttribute('material', 'color', '#f0f0f0');
             sheet.object3D.position.set(10 * Math.sin(alpha), 1, 10 * Math.cos      (alpha));
             sheet.setAttribute('rotation', { x: 0, y: (i - 4) / 8 * 360, z: 0 });
-            if (i % 2) {
+            if (!(i % 2)) {
                 sheet.setAttribute('axis_buttons', '');
             }
             sheet.setAttribute('value', i);
@@ -46,7 +51,10 @@ AFRAME.registerComponent('room', {
         }
     }
 });
-AFRAME.registerComponent('axis_buttons', {// creates primary buttons on the canvas
+/**
+ * @desc AFRAME component that creates main buttons on a wall for the plot 
+ */
+AFRAME.registerComponent('axis_buttons', {
     init: function () {
         var val = this.el.getAttribute('value');
         // labels
@@ -70,7 +78,9 @@ AFRAME.registerComponent('axis_buttons', {// creates primary buttons on the canv
         }
     }
 });
-// data listeners
+/**
+ * @desc AFRAME component that listens for a click which loads the respective variable data to the plotpoints
+ */
 AFRAME.registerComponent('data_cursorlistener', {
     schema: {
         axis: { default: 'x' }
@@ -138,8 +148,10 @@ AFRAME.registerComponent('data_cursorlistener', {
         );
     }
 });
-// cursor listener for the show button
-AFRAME.registerComponent('show_cursorlistener', {//creates plot area and axis buttons
+/**
+ * @desc AFRAME component that makes the axis buttons visible and creates the plot area
+ */
+AFRAME.registerComponent('show_cursorlistener', {
     init: function () {
         this.el.addEventListener('click', function () {
             console.log('show');
@@ -172,7 +184,9 @@ AFRAME.registerComponent('show_cursorlistener', {//creates plot area and axis bu
         });
     }
 });
-// cursor listener for the hide button
+/**
+ * @desc AFRAME component that hides the buttons and the plot area on a click
+ */
 AFRAME.registerComponent('hide_cursorlistener', { // hides the plot and the buttons
     init: function () {
         this.el.addEventListener('click', function () {
@@ -184,8 +198,9 @@ AFRAME.registerComponent('hide_cursorlistener', { // hides the plot and the butt
         });
     }
 });
-// cursor listener for the axis
-var rotate;
+/**
+ * @desc AFRAME component that creates or hides the buttons for the differen data variables
+ */
 AFRAME.registerComponent('axis_cursorlistener', {
     schema: {
         axis: { type: 'string', default: 'x' },
@@ -288,7 +303,9 @@ AFRAME.registerComponent('axis_cursorlistener', {
     }
 
 }); 
-// creating teleport options
+/**
+ * @desc AFRAME component that creates interactible tiles that the user can teleport to on a click
+ */
 AFRAME.registerComponent('teleport-tiles', {
     init: function () {
         var m, n;
@@ -331,11 +348,23 @@ AFRAME.registerComponent('teleport-tiles', {
         };
     }
 })
-function type(d) { // casts entries to numbers
+/**
+ * @desc casts input to a number
+ * @param d - the string to be cast into a number
+ * @return the cast number
+ */
+function type(d) {
     d.value = +d.value;
     return d;
 };
-function buttontext(text, c = 'black', d = .05) { //creates text for buttons
+/**
+ * @desc creates the button label
+ * @param string text - the string to be cast into a number
+ * @param string c - the color of the label
+ * @param float d - distance of the label to the button
+ * @return an a-text entity
+ */
+function buttontext(text, c = 'black', d = .05) {
     var buttontext = document.createElement('a-text');
     buttontext.setAttribute('value', text);
     buttontext.setAttribute('width', '5');
@@ -344,7 +373,17 @@ function buttontext(text, c = 'black', d = .05) { //creates text for buttons
     buttontext.object3D.position.set(0, 0, d);
     return buttontext;
 };
-function button(name = '', pos = '0 0 0', size = [.5, .5, .3], txt = '', idx = '', c = ['grey', 'black']) { // creates a basic clickable button
+/**
+ * @desc creates a clickable button
+ * @param string name - name for the id 
+ * @param string pos - position relative to parent node
+ * @param array size - dimensions of the button
+ * @param string txt - text for the button label
+ * @param string idx - index of the wall
+ * @param string array c - colors for the button [0] and the text [1]
+ * @return a clickable a-box entity with an a-text label
+ */
+function button(name = '', pos = '0 0 0', size = [.5, .5, .3], txt = '', idx = '', c = ['grey', 'black']) {
     var new_button = document.createElement('a-entity');
     new_button.setAttribute('id', name + txt + idx);
     new_button.setAttribute('geometry', {
@@ -360,7 +399,15 @@ function button(name = '', pos = '0 0 0', size = [.5, .5, .3], txt = '', idx = '
     new_button.appendChild(buttontext(txt, c[1]), (size[2] / 2 + 0.05));
     return new_button;
 };
-function data_buttons(d, shft = [0, 0], ax = 'x', c = 'grey') { // controls the position and the movement of the variable buttons
+/**
+ * @desc creates the movement of the data variable buttons
+ * @param d - the data entry 
+ * @param array shft - shifted position relative to the axis parent button
+ * @param string ax - axis label of the parent button
+ * @param string c - color of the button
+ * @return a clickable button with the data_cursorlistener
+ */
+function data_buttons(d, shft = [0, 0], ax = 'x', c = 'grey') { 
     switch (ax) {
         case 'x':
             break;
@@ -378,7 +425,15 @@ function data_buttons(d, shft = [0, 0], ax = 'x', c = 'grey') { // controls the 
     new_data_b.setAttribute('class', 'data_click');
     return new_data_b;
 };
-function rot_button(ax = 'x', pos = '0 0 0', txt = '', idx = 0) { // adds the rotation function on hover to the rotation buttons
+/**
+ * @desc adds the rotation function on hover to the rotation buttons
+ * @param string ax - respective axis
+ * @param string pos - position of the button
+ * @param string txt - label for the button
+ * @param int idx - index of the wall 
+ * @return a button that rotates the plot area on hover
+ */
+function rot_button(ax = 'x', pos = '0 0 0', txt = '', idx = 0) {
     var b = button(ax, pos, size = [.3, .3, .08], txt = txt, idx = idx)
     b.addEventListener('mouseenter', function () {
         window.clearInterval(rotate);
@@ -389,7 +444,13 @@ function rot_button(ax = 'x', pos = '0 0 0', txt = '', idx = 0) { // adds the ro
     });
     return b;
 };
-function rotatePlot(a, n, d) { // rotates the plotbox corresponding to the button
+/**
+ * @desc rotates the plot area along the corresponding axis
+ * @param string a - axis the plot rotattes along
+ * @param int n - index of the plot
+ * @param string d - direction of rotation ('<' or '>')
+ */
+function rotatePlot(a, n, d) {
     var plot = document.getElementById('plotbox' + n);
     var rot = plot.getAttribute('rotation');
     if (d == '<') {
@@ -399,7 +460,11 @@ function rotatePlot(a, n, d) { // rotates the plotbox corresponding to the butto
     }
     plot.setAttribute('rotation', rot);
 };
-function hide(buttons = '') {// hides the listed buttons
+/**
+ * @desc hides the listed buttons
+ * @param string array buttons - list of object names to made invisible
+ */
+function hide(buttons = '') {
     var i;
     for (i = 0; i < buttons.length; i++) {
         var b = document.getElementById(buttons[i]);
@@ -409,6 +474,10 @@ function hide(buttons = '') {// hides the listed buttons
         }
     }
 };
+/**
+ * @desc shows the listed buttons
+ * @param string array buttons - list of object names to made visible
+ */
 function show(buttons = '') {// shows the listed buttons
     var i;
     for (i = 0; i < buttons.length; i++) {
@@ -419,7 +488,15 @@ function show(buttons = '') {// shows the listed buttons
         }
     }
 };
-function grid(ax1='x',ax2='y',idx='',geo,ax3=''){
+/**
+ * @desc creates a rough grid for orientation
+ * @param string ax1 - axis along which the grid is supposed to run
+ * @param string ax2 - second axis along which the grid is supposed to run
+ * @param string idx - index of the plot area
+ * @param geo - geometry of the plot area
+ * @param string oppAx - third axis 
+ */
+function grid(ax1='x',ax2='y',idx='',geo,oppAx=''){
     var origin = d3.select('#origin' + idx);
     var pos_start = {x:0,y:0,z:0};
     var pos_end = {x:0,y:0,z:0};
@@ -429,37 +506,55 @@ function grid(ax1='x',ax2='y',idx='',geo,ax3=''){
         pos_start[ax1]=q[i]*geo.width;
         pos_end[ax1]=q[i]*geo.width;
         pos_end[ax2]=geo.width;
-        if (ax3!=''){
-            pos_start[ax3]=geo.width;
-            pos_end[ax3]=geo.width;
+        if (oppAx!=''){
+            pos_start[oppAx]=geo.width;
+            pos_end[oppAx]=geo.width;
         }
-        origin.attr('line__' + ax1+ax2+ax3+i, 'start: '+pos_start.x +' '+pos_start.y+' '+pos_start.z+'; end: ' + pos_end.x +' '+pos_end.y+' '+pos_end.z + ';color:lightgray');
+        origin.attr('line__' + ax1+ax2+oppAx+i, 'start: '+pos_start.x +' '+pos_start.y+' '+pos_start.z+'; end: ' + pos_end.x +' '+pos_end.y+' '+pos_end.z + ';color:lightgray');
     }
 };
+/**
+ * @desc creates labels on the axis 
+ * @param string ax - axis which should be labeled
+ * @param array range - range of the data
+ * @param int idx - index of the plot area
+ * @param geo - geometry of the plot area
+ */
 function axis_ticks(ax='x',range,idx,geo){
     var plot = document.getElementById('plotbox'+idx);
     var pos = {x:-2.5,y:-2.5,z:2.5};
-    var q = [.25,.5,.75,1];
+    var q = [0,.25,.5,.75,1];
     var i;
-    for (i=0;i<4;i++){
+    for (i=0;i<5;i++){
         var pos = {x:-2.5,y:-2.5,z:-2.5};
-        var text = document.createElement('a-text');
-        text.setAttribute('value',numeral((range[1]-range[0])*q[i]).format(0,0.0));
-        text.setAttribute('color','black');
-        text.setAttribute('align','center');
-        pos[ax]=pos[ax]+geo.width*q[i];
-        switch (ax){
-            case 'x':
-                pos.y=pos.y-.25;
-                pos.z=2.5;
-                break;
-            case 'y':
-                pos.z=2.5;
-            case 'z':
-                pos.y=pos.y-.25;
-                pos.x=pos.x-.25;
+        if(!document.getElementById('tick'+ax+i)){
+            var text = document.createElement('a-text');
+            text.setAttribute('id','tick'+ax+i);
+            text.setAttribute('color','black');
+            text.setAttribute('align','center');
+            text.setAttribute('look-at','[camera]');
+            pos[ax]=pos[ax]+geo.width*q[i];
+            switch (ax){
+                case 'x':
+                    pos.y=pos.y-.1;
+                    pos.z=2.5;
+                    break;
+                case 'y':
+                    pos.z=2.5;
+                    pos.x=pos.x-.1;
+                    break;
+                case 'z':
+                    pos.y=pos.y-.1;
+                    pos.x=pos.x-.1;
+            }
+            text.object3D.position.set(pos.x,pos.y,pos.z);
+        }else{
+            text=document.getElementById('tick'+ax+i)
         }
-        text.object3D.position.set(pos.x,pos.y,pos.z);
-        plot.appendChild(text);
+        text.setAttribute('value',numeral(range[0]+(range[1]-range[0])*q[i]).format(0,0.0));
+        text.setAttribute('scale','.5 .5');
+        if(!document.getElementById('tick'+ax+i)){
+            plot.appendChild(text);
+        }   
     }
 };
