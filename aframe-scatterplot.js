@@ -6,8 +6,8 @@
 // listener for the trigger of the google cardboard
 AFRAME.registerComponent('touch-screen', {
     init: function () {
-        const sceneEl = this.el.sceneEl
-        const canvasEl = sceneEl.canvas
+        const sceneEl = this.el.sceneEl;
+        const canvasEl = sceneEl.canvas;
         canvasEl.addEventListener('touchend', function () {
             var cursor = document.getElementById('cursor');
             // objects in focus of the cursor
@@ -36,7 +36,7 @@ AFRAME.registerComponent('room', {
                 width: w
             });
             sheet.setAttribute('material', 'color', '#f0f0f0');
-            sheet.object3D.position.set(10 * Math.sin(alpha), 1, 10 * Math.cos(alpha));
+            sheet.object3D.position.set(10 * Math.sin(alpha), 1, 10 * Math.cos      (alpha));
             sheet.setAttribute('rotation', { x: 0, y: (i - 4) / 8 * 360, z: 0 });
             if (i % 2) {
                 sheet.setAttribute('axis_buttons', '');
@@ -55,10 +55,10 @@ AFRAME.registerComponent('axis_buttons', {// creates primary buttons on the canv
         var bx = [0.15, 0.775, 0.15, 0.2, 0.8].map(function (x) { return 10 * (x - .5) });
         var by = [0.3, 0.65, 0.7, 0.2, 0.2].map(function (x) { return 15 * (x - .5) });
         for (j = 0; j < 5; j++) {
-            var ax_button = button(name = '', pos = bx[j] + ' ' + by[j] + ' 0', size = [.5, .75, .1], txt = b[j], idx = val);
+            var ax_button = button(name = '', pos = bx[j] + ' ' + by[j] + ' 0',     size = [.5, .75, .1], txt = b[j], idx = val);
             ax_button.setAttribute('value', b[j]);
             if (b[j] == "x" || b[j] == "y" || b[j] == "z") {
-                ax_button.setAttribute('axis_cursorlistener', { axis: b[j], active: false });
+                ax_button.setAttribute('axis_cursorlistener', { axis: b[j],         active: false });
             } else {
                 ax_button.setAttribute(b[j] + '_cursorlistener', '');
             }
@@ -96,7 +96,8 @@ AFRAME.registerComponent('data_cursorlistener', {
                 }
                 var origin = d3.select('#origin' + idx);
                 var key = this.getAttribute('value'),
-                    extent = d3.extent(plotdata, function (d) { return +d[key]; });
+                    extent = d3.extent(plotdata, function (d) {return +d[key]; });
+                axis_ticks(compdata.axis,extent,idx,geo);
                 var scale = d3.scaleLinear()
                     .domain(extent)
                     .range(range);
@@ -141,6 +142,7 @@ AFRAME.registerComponent('data_cursorlistener', {
 AFRAME.registerComponent('show_cursorlistener', {//creates plot area and axis buttons
     init: function () {
         this.el.addEventListener('click', function () {
+            console.log('show');
             var val = this.parentNode.getAttribute('value')
             show(buttons = ['x' + val, 'y' + val, 'z' + val]);
             // create plotting area if none exists yet
@@ -222,8 +224,19 @@ AFRAME.registerComponent('axis_cursorlistener', {
                             break;
                         case 'y':
                             line_to = '0 ' + geo.height + ' 0';
+                            console.log('y');
+                            grid('x','y',idx,geo);
+                            grid('y','x',idx,geo);
                             break;
                         case 'z':
+                            grid('x','z',idx,geo,'');
+                            grid('z','x',idx,geo,'');
+                            grid('z','y',idx,geo,'');
+                            grid('y','z',idx,geo,'');
+                            grid('x','z',idx,geo,'y');
+                            grid('z','x',idx,geo,'y');
+                            grid('z','y',idx,geo,'x');
+                            grid('y','z',idx,geo,'x');
                             origin.attr('animation', 'property: position;to:-2.5 -2.5 -2.5;dur:1500;easing:linear');
                             plotID.setAttribute('animation__depth', 'property: geometry.depth;to: 5;dur:1500;easing:linear');
                             plotID.setAttribute('animation__pos', 'property: position;to:-.5 0 3;dur:1500;easing:linear');
@@ -274,7 +287,50 @@ AFRAME.registerComponent('axis_cursorlistener', {
         });
     }
 
-}); // axis buttons 
+}); 
+// creating teleport options
+AFRAME.registerComponent('teleport-tiles', {
+    init: function () {
+        var m, n;
+        var nTiles = 10;
+        for (m = 0; m < nTiles; m++) {
+            for (n = 0; n < nTiles; n++) {
+                var tile = document.createElement('a-entity');
+                tile.setAttribute('geometry', {
+                    primitive: 'plane',
+                    height: 2, width: 2
+                });
+                tile.object3D.position.set((2 * m - 9), (2 * n - 9), 0.01 );
+                tile.setAttribute('material', 'opacity', 0.2);
+                tile.setAttribute('class', 'clickable');
+                if (Math.sqrt((2 * m - 9) ** 2 + (2 * n - 9) ** 2) < 8.5) {
+                    tile.setAttribute('line__l', 'start:-1 -1 0; end:1 -1 0;color:black;visible:false');
+                    tile.setAttribute('line__t', 'start:1 -1 0; end:1 1 0;color:black;visible:false');
+                    tile.setAttribute('line__r', 'start:1 1 0; end:-1 1 0;color:black;visible:false');
+                    tile.setAttribute('line__b', 'start:-1 1 0; end:-1 -1 0;color:black;visible:false');
+                    tile.addEventListener('mouseenter', function () {
+                        this.setAttribute('line__l', 'visible:true');
+                        this.setAttribute('line__t', 'visible:true');
+                        this.setAttribute('line__b', 'visible:true');
+                        this.setAttribute('line__r', 'visible:true');
+                    });
+                    tile.addEventListener('mouseleave', function () {
+                        this.setAttribute('line__l', 'visible:false');
+                        this.setAttribute('line__t', 'visible:false');
+                        this.setAttribute('line__b', 'visible:false');
+                        this.setAttribute('line__r', 'visible:false');
+                    });
+                    tile.addEventListener('click', function () {
+                        var cam = document.getElementById('rig');
+                        cam.object3D.position.set(this.object3D.position.x, 0, -this.object3D.position.y );
+                    });
+                }
+                var floor = document.getElementById('floor');
+                floor.appendChild(tile);
+            };
+        };
+    }
+})
 function type(d) { // casts entries to numbers
     d.value = +d.value;
     return d;
@@ -285,7 +341,7 @@ function buttontext(text, c = 'black', d = .05) { //creates text for buttons
     buttontext.setAttribute('width', '5');
     buttontext.setAttribute('color', c);
     buttontext.setAttribute('align', 'center');
-    buttontext.setAttribute('position', { x: 0, y: 0, z: d });
+    buttontext.object3D.position.set(0, 0, d);
     return buttontext;
 };
 function button(name = '', pos = '0 0 0', size = [.5, .5, .3], txt = '', idx = '', c = ['grey', 'black']) { // creates a basic clickable button
@@ -347,8 +403,8 @@ function hide(buttons = '') {// hides the listed buttons
     var i;
     for (i = 0; i < buttons.length; i++) {
         var b = document.getElementById(buttons[i]);
-        if (b.getAttribute('visible') == true) {
-            b.setAttribute('visible', 'false');
+        if (b.object3D.visible == true) {
+            b.object3D.visible = false;
             b.removeAttribute('class');
         }
     }
@@ -357,52 +413,53 @@ function show(buttons = '') {// shows the listed buttons
     var i;
     for (i = 0; i < buttons.length; i++) {
         var b = document.getElementById(buttons[i]);
-        if (b.getAttribute('visible') == false) {
-            b.object3D.visible=true;
+        if (b.object3D.visible == false) {
+            b.object3D.visible = true;
             b.setAttribute('class', 'clickable');
         }
     }
 };
-// creating teleport options
-AFRAME.registerComponent('teleport-tiles', {
-    init: function () {
-        var m, n;
-        var nTiles = 10;
-        for (m = 0; m < nTiles; m++) {
-            for (n = 0; n < nTiles; n++) {
-                var tile = document.createElement('a-entity');
-                tile.setAttribute('geometry', {
-                    primitive: 'plane',
-                    height: 2, width: 2
-                });
-                tile.object3D.position.set((2 * m - 9), (2 * n - 9), 0.01 );
-                tile.setAttribute('material', 'opacity', 0.2);
-                tile.setAttribute('class', 'clickable');
-                if (Math.sqrt((2 * m - 9) ** 2 + (2 * n - 9) ** 2) < 8.5) {
-                    tile.setAttribute('line__l', 'start:-1 -1 0; end:1 -1 0;color:black;visible:false');
-                    tile.setAttribute('line__t', 'start:1 -1 0; end:1 1 0;color:black;visible:false');
-                    tile.setAttribute('line__r', 'start:1 1 0; end:-1 1 0;color:black;visible:false');
-                    tile.setAttribute('line__b', 'start:-1 1 0; end:-1 -1 0;color:black;visible:false');
-                    tile.addEventListener('mouseenter', function () {
-                        this.setAttribute('line__l', 'visible:true');
-                        this.setAttribute('line__t', 'visible:true');
-                        this.setAttribute('line__b', 'visible:true');
-                        this.setAttribute('line__r', 'visible:true');
-                    });
-                    tile.addEventListener('mouseleave', function () {
-                        this.setAttribute('line__l', 'visible:false');
-                        this.setAttribute('line__t', 'visible:false');
-                        this.setAttribute('line__b', 'visible:false');
-                        this.setAttribute('line__r', 'visible:false');
-                    });
-                    tile.addEventListener('click', function () {
-                        var cam = document.getElementById('rig');
-                        cam.object3D.position.set(this.object3D.position.x, 0, -this.object3D.position.y );
-                    });
-                }
-                var floor = document.getElementById('floor');
-                floor.appendChild(tile);
-            };
-        };
+function grid(ax1='x',ax2='y',idx='',geo,ax3=''){
+    var origin = d3.select('#origin' + idx);
+    var pos_start = {x:0,y:0,z:0};
+    var pos_end = {x:0,y:0,z:0};
+    var q = [.25,.5,.75,1];
+    var i;
+    for (i=0;i<4;i++){
+        pos_start[ax1]=q[i]*geo.width;
+        pos_end[ax1]=q[i]*geo.width;
+        pos_end[ax2]=geo.width;
+        if (ax3!=''){
+            pos_start[ax3]=geo.width;
+            pos_end[ax3]=geo.width;
+        }
+        origin.attr('line__' + ax1+ax2+ax3+i, 'start: '+pos_start.x +' '+pos_start.y+' '+pos_start.z+'; end: ' + pos_end.x +' '+pos_end.y+' '+pos_end.z + ';color:lightgray');
     }
-})
+};
+function axis_ticks(ax='x',range,idx,geo){
+    var plot = document.getElementById('plotbox'+idx);
+    var pos = {x:-2.5,y:-2.5,z:2.5};
+    var q = [.25,.5,.75,1];
+    var i;
+    for (i=0;i<4;i++){
+        var pos = {x:-2.5,y:-2.5,z:-2.5};
+        var text = document.createElement('a-text');
+        text.setAttribute('value',numeral((range[1]-range[0])*q[i]).format(0,0.0));
+        text.setAttribute('color','black');
+        text.setAttribute('align','center');
+        pos[ax]=pos[ax]+geo.width*q[i];
+        switch (ax){
+            case 'x':
+                pos.y=pos.y-.25;
+                pos.z=2.5;
+                break;
+            case 'y':
+                pos.z=2.5;
+            case 'z':
+                pos.y=pos.y-.25;
+                pos.x=pos.x-.25;
+        }
+        text.object3D.position.set(pos.x,pos.y,pos.z);
+        plot.appendChild(text);
+    }
+};
