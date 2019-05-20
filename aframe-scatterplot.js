@@ -107,7 +107,7 @@ AFRAME.registerComponent('data_cursorlistener', {
                 var origin = d3.select('#origin' + idx);
                 var key = this.getAttribute('value'),
                     extent = d3.extent(plotdata, function (d) {return +d[key]; });
-                axis_ticks(compdata.axis,extent,idx,geo);
+                axis_ticks(compdata.axis,extent,idx,geo,key);
                 var scale = d3.scaleLinear()
                     .domain(extent)
                     .range(range);
@@ -493,7 +493,7 @@ function show(buttons = '') {// shows the listed buttons
  * @param string ax1 - axis along which the grid is supposed to run
  * @param string ax2 - second axis along which the grid is supposed to run
  * @param string idx - index of the plot area
- * @param geo - geometry of the plot area
+ * @param struct geo - geometry of the plot area
  * @param string oppAx - third axis 
  */
 function grid(ax1='x',ax2='y',idx='',geo,oppAx=''){
@@ -518,9 +518,9 @@ function grid(ax1='x',ax2='y',idx='',geo,oppAx=''){
  * @param string ax - axis which should be labeled
  * @param array range - range of the data
  * @param int idx - index of the plot area
- * @param geo - geometry of the plot area
+ * @param struct geo - geometry of the plot area
  */
-function axis_ticks(ax='x',range,idx,geo){
+function axis_ticks(ax='x',range,idx,geo,key){
     var plot = document.getElementById('plotbox'+idx);
     var pos = {x:-2.5,y:-2.5,z:2.5};
     var q = [0,.25,.5,.75,1];
@@ -546,6 +546,7 @@ function axis_ticks(ax='x',range,idx,geo){
                 case 'z':
                     pos.y=pos.y-.1;
                     pos.x=pos.x-.1;
+                    text.object3D.rotation.set(0,0,Math.PI/4);
             }
             text.object3D.position.set(pos.x,pos.y,pos.z);
         }else{
@@ -557,4 +558,32 @@ function axis_ticks(ax='x',range,idx,geo){
             plot.appendChild(text);
         }   
     }
+    if(!document.getElementById('label'+ax+i)){
+        var text = document.createElement('a-text');
+        text.setAttribute('id','label'+ax+i);
+        text.setAttribute('color','black');
+        switch (ax){
+            case 'x':
+                text.setAttribute('align','left');
+                pos = {x:-2.3,y:-2.4,z:2.55};
+                break;
+            case 'y':
+                text.setAttribute('align','left');
+                pos = {x:-2.4,y:-2.3,z:2.55};
+                text.object3D.rotation.set(0,0,Math.PI/2);
+                break;
+            case 'z':
+                text.setAttribute('align','right');
+                text.object3D.rotation.set(0,0,Math.PI/4);
+                pos = {x:-2.65,y:-2.65,z:2.55};
+        }
+        text.object3D.position.set(pos.x,pos.y,pos.z);
+    }else{
+        text=document.getElementById('label'+ax+i)
+    }
+    text.setAttribute('value',key);
+    text.setAttribute('scale','.5 .5');
+    if(!document.getElementById('label'+ax+i)){
+        plot.appendChild(text);
+    }   
 };
