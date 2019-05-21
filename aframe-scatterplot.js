@@ -45,6 +45,11 @@ AFRAME.registerComponent('room', {
             sheet.setAttribute('rotation', { x: 0, y: (i - 4) / 8 * 360, z: 0 });
             if (!(i % 2)) {
                 sheet.setAttribute('axis_buttons', '');
+            } else {
+                var wheel = document.createElement('a-entity');
+                wheel.setAttribute('id','wheel'+i);
+                wheel.setAttribute('select-wheel','');
+                sheet.appendChild(wheel);
             }
             sheet.setAttribute('value', i);
             space.appendChild(sheet);
@@ -304,6 +309,60 @@ AFRAME.registerComponent('axis_cursorlistener', {
 
 }); 
 /**
+ * @desc prototyping an AFRAME component for wheel selection. 
+ */
+AFRAME.registerComponent('select-wheel',{
+    init: function () {
+        var val = this.el.parentNode.getAttribute('value');
+        // labels
+        var b = ['a', 'b', 'c', 'd', 'e'];
+        // positions
+        var tr_up = document.createElement('a-triangle');
+        tr_up.object3D.position.set(0,1.5,0.05);
+        tr_up.setAttribute('color','grey');
+        tr_up.setAttribute('scale', '.5 .5');
+        tr_up.setAttribute('class','clickable');
+        tr_up.setAttribute('value','up');
+        tr_up.setAttribute('wheel-arrow-listener','up');
+        this.el.appendChild(tr_up);
+        var tr_down = document.createElement('a-triangle');
+        tr_down.object3D.position.set(0,-1.5,0.05);
+        tr_down.object3D.rotation.set(0,0,Math.PI);
+        tr_down.setAttribute('scale', '.5 .5');
+        tr_down.setAttribute('color','grey');
+        tr_down.setAttribute('class','clickable');
+        tr_down.setAttribute('value','down');
+        tr_down.setAttribute('wheel-arrow-listener','down');
+        this.el.appendChild(tr_down);
+        for (j = 0; j < 5; j++) {
+            var wheel_button = button(name = '', pos =  '0 ' + ((j-2)*0.5) + ' 0',     size = [.3, .5, .1], txt = b[j], idx = val);
+            wheel_button.setAttribute('material','opacity:'+1/(1+Math.abs(j-2)));
+            wheel_button.setAttribute('value', b[j]);
+            this.el.appendChild(wheel_button);
+        }
+    }
+})
+/**
+ * @desc prototyping an AFRAME component for wheel selection. 
+ */
+AFRAME.registerComponent('wheel-arrow-listener',{
+    schema:{
+        direction: {type:'string', default:'up'}
+    },
+    init: function () {
+        this.el.addEventListener('click', function () {
+            var buttons = this.parentNode.childNodes;
+            var i ;
+            var 
+            for (i=0; i<buttons.length;i++){
+                if (buttons[i].nodeName!='A-TRIANGLE'){
+                    //rotate over the key :/ we'll see
+                }
+            }
+        })
+    }
+})
+  /**
  * @desc AFRAME component that creates interactible tiles that the user can teleport to on a click
  */
 AFRAME.registerComponent('teleport-tiles', {
