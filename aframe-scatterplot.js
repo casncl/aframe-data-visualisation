@@ -45,11 +45,6 @@ AFRAME.registerComponent('room', {
             sheet.setAttribute('rotation', { x: 0, y: (i - 4) / 8 * 360, z: 0 });
             if (!(i % 2)) {
                 sheet.setAttribute('axis_buttons', '');
-            } else {
-                var wheel = document.createElement('a-entity');
-                wheel.setAttribute('id','wheel'+i);
-                wheel.setAttribute('select-wheel','');
-                sheet.appendChild(wheel);
             }
             sheet.setAttribute('value', i);
             space.appendChild(sheet);
@@ -159,7 +154,6 @@ AFRAME.registerComponent('data_cursorlistener', {
 AFRAME.registerComponent('show_cursorlistener', {
     init: function () {
         this.el.addEventListener('click', function () {
-            console.log('show');
             var val = this.parentNode.getAttribute('value')
             show(buttons = ['x' + val, 'y' + val, 'z' + val]);
             // create plotting area if none exists yet
@@ -180,6 +174,12 @@ AFRAME.registerComponent('show_cursorlistener', {
                 // load the data into the window to not have to load it for every chang of data
                 d3.csv('simulated_data_2_random_2000.csv', type, function (error, data) {
                     window.value = data;
+                    var wheel = document.createElement('a-entity');
+                    wheel.setAttribute('value',[d3.keys(d3.values(window.value)[0])]);
+                    wheel.setAttribute('id','wheel'+(val-1));
+                    wheel.setAttribute('select-wheel','');
+                    var sheet = document.getElementById('mycanvas'+(val-1));
+                    sheet.appendChild(wheel);
                 });
                 this.parentNode.appendChild(plotbox);
             } else { // if existent just make it visible again
@@ -315,7 +315,7 @@ AFRAME.registerComponent('select-wheel',{
     init: function () {
         var val = this.el.parentNode.getAttribute('value');
         // labels
-        var b = ['a', 'b', 'c', 'd', 'e'];
+        var b = this.el.getAttribute('value').split(',');
         // positions
         var tr_up = document.createElement('a-triangle');
         tr_up.object3D.position.set(0,1.5,0.05);
@@ -323,7 +323,7 @@ AFRAME.registerComponent('select-wheel',{
         tr_up.setAttribute('scale', '.5 .5');
         tr_up.setAttribute('class','clickable');
         tr_up.setAttribute('value','up');
-        tr_up.setAttribute('wheel-arrow-listener','up');
+        tr_up.setAttribute('wheel-arrow-listener','direction:up');
         this.el.appendChild(tr_up);
         var tr_down = document.createElement('a-triangle');
         tr_down.object3D.position.set(0,-1.5,0.05);
@@ -332,14 +332,23 @@ AFRAME.registerComponent('select-wheel',{
         tr_down.setAttribute('color','grey');
         tr_down.setAttribute('class','clickable');
         tr_down.setAttribute('value','down');
-        tr_down.setAttribute('wheel-arrow-listener','down');
+        tr_down.setAttribute('wheel-arrow-listener','direction:down');
         this.el.appendChild(tr_down);
-        for (j = 0; j < 5; j++) {
-            var wheel_button = button(name = '', pos =  '0 ' + ((j-2)*0.5) + ' 0',     size = [.3, .5, .1], txt = b[j], idx = val);
-            wheel_button.setAttribute('material','opacity:'+1/(1+Math.abs(j-2)));
-            wheel_button.setAttribute('value', b[j]);
-            this.el.appendChild(wheel_button);
+        var buttons = document.createElement('a-entity');
+        buttons.setAttribute('id',this.el.getAttribute('id')+'buttons');
+        for (j = 0; j < b.length; j++) {
+            var wheel_button = button(name = '', pos =  '0 ' + ((j-2)*0.5) + ' 0',     size = [.5, .75, .1], txt = j, idx = val);
+            if (j>4){
+                wheel_button.object3D.visible=false;
+                wheel_button.removeAttribute('class');
+            }else{
+                wheel_button.setAttribute('material','opacity:'+1/(1+Math.abs(j-2)));
+            }
+            wheel_button.setAttribute('id',j);
+            wheel_button.setAttribute('value', j);
+            buttons.appendChild(wheel_button);
         }
+        this.el.appendChild(buttons);
     }
 })
 /**
@@ -350,19 +359,63 @@ AFRAME.registerComponent('wheel-arrow-listener',{
         direction: {type:'string', default:'up'}
     },
     init: function () {
+        var dir = this.data.direction;
         this.el.addEventListener('click', function () {
-            var buttons = this.parentNode.childNodes;
+            var buttons = document.getElementById(this.parentNode.getAttribute('id')+'buttons').childNodes;
+            // console.log(buttons);
+            var val = this.parentNode.parentNode.getAttribute('value');
+            var b = this.parentNode.getAttribute('value').split(',');
             var i ;
-            var 
             for (i=0; i<buttons.length;i++){
                 if (buttons[i].nodeName!='A-TRIANGLE'){
+                    var pos = buttons[i].object3D.position;
+                    if(dir=='up'){
+                        buttons[i].setAttribute('animation__pos','property:position;to: 0 '+(pos.y+0.5)+' 0;easing:linear;dur:500');
+                        buttons[i].setAttribute('animation__opa','property:material.opacity;to: '+ 1/(1+Math.abs(+buttons[i].getAttribute('id')-1)) +' ;easing:linear;dur:500');
+                        setTimeout(function(b_cur){
+                            b_cur.removeAttribute('animation__pos');
+                            b_cur.removeAttribute('animation__opa');
+                        },510,buttons[i])
+                        //wheel up : have top one dissappear
+                        if(buttons[i].getAttribute('id')==4){
+                            // button in pos 4 dissappears
+                            buttons[i].setAttribute('animation__scl','property:scale;to: 0 0 0;easing:linear;dur:500');
+                            // index of the buttons to appear in pos 0
+                            var j = buttons[i].getAttribute('value')-5;
+                            if (j<0) {j = b.length + j};
+                            buttons[j].object3D.visible=true;
+                            buttons[j].setAttribute('class','clickable');
+                            buttons[j].object3D.position.set(0,-1.5,0)
+                            buttons[j].setAttribute('animation__pos','property:position;to: 0 -1 0;easing:linear;dur:500');
+                            buttons[j].setAttribute('animation__scl','property:scale;from: 0 0 0;to: 1 1 1;easing:linear;dur:500');
+                            buttons[j].setAttribute('animation__opa','property:material.opacity;from:0; to: 0.33 ;easing:linear;dur:500');
+                            buttons[j].setAttribute('id',0);
+                            setTimeout(function(b_ex,b_en){
+                                b_ex.removeAttribute('animation__scl');
+                                b_en.removeAttribute('animation__opa');
+                                b_en.removeAttribute('animation__pos');
+                                b_en.removeAttribute('animation__scl');
+                            },510,buttons[i],buttons[j])
+                        }
+                        buttons[i].setAttribute('id',((+buttons[i].getAttribute('id')+1)));
+                        // console.log(buttons[i].getAttribute('id'));
+                        
+                    }else{
+                        buttons[i].setAttribute('animation__pos','property:position;to: 0 '+(pos.y-0.5)+' 0;easing:linear;dur:500');
+                        buttons[i].setAttribute('animation__opa','property:material.opacity;to: '+ 1/(1+Math.abs(+buttons[i].getAttribute('id')-3)) +' ;easing:linear;dur:500');
+                        if (buttons[i].getAttribute('id')<=0){
+                            buttons[i].setAttribute('animation__scl','property:scale;to: 0 0 0;easing:linear;dur:500');
+                        }
+                        buttons[i].setAttribute('id',((+buttons[i].getAttribute('id')-1)));
+                        // console.log(buttons[i].getAttribute('id'));
+                    }
                     //rotate over the key :/ we'll see
                 }
             }
         })
     }
 })
-  /**
+/**
  * @desc AFRAME component that creates interactible tiles that the user can teleport to on a click
  */
 AFRAME.registerComponent('teleport-tiles', {
