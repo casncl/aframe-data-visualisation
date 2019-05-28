@@ -161,20 +161,20 @@ AFRAME.registerComponent('show_cursorlistener', {
             // show(buttons = ['x' + val, 'y' + val, 'z' + val]);
             // create plotting area if none exists yet
             if (!document.getElementById('plotbox' + val)) {
-                var plotplane=document.createElement('a-plane');
-                plotplane.object3D.position.set(0, 0, 3);
-                plotplane.object3D.rotation.set(90,0,0);
-                plotplane.setAttribute('geometry', {
-                    height: 5,
-                    width: 5
-                });
-                plotplane.setAttribute('material', {
-                    color: 'green',
-                    opacity: .1,
-                    transparent: true,
-                    alphaTest: 0.05
-                });
-                plotplane.setAttribute('class', 'not-clickable');
+                // var plotplane=document.createElement('a-plane');
+                // plotplane.object3D.position.set(0, 0, 3);
+                // plotplane.object3D.rotation.set(90,0,0);
+                // plotplane.setAttribute('geometry', {
+                //     height: 5,
+                //     width: 5
+                // });
+                // plotplane.setAttribute('material', {
+                //     color: 'green',
+                //     opacity: .1,
+                //     transparent: true,
+                //     alphaTest: 0.05
+                // });
+                // plotplane.setAttribute('class', 'not-clickable');
                 //
                 var plotbox = document.createElement('a-box');
                 plotbox.setAttribute('id', 'plotbox' + val);
@@ -363,7 +363,8 @@ AFRAME.registerComponent('select-wheel', {
         tr_select.setAttribute('scale', '.5 .5');
         tr_select.setAttribute('color', 'grey');
         tr_select.setAttribute('class', 'clickable');
-        tr_select.setAttribute('value', 'down');
+        tr_select.setAttribute('axis','y');
+        tr_select.setAttribute('variable', b[2]);
         tr_select.setAttribute('wheel-select-listener', '');
         this.el.appendChild(tr_select);
         var buttons = document.createElement('a-entity');
@@ -416,7 +417,7 @@ AFRAME.registerComponent('wheel-arrow-listener', {
                 var i;
                 for (i = 0; i < buttons.length; i++) {
                     var pos = buttons[i].object3D.position;
-                    if (dir == 'up' && +buttons[i].getAttribute('id') < 5) {
+                    if (dir == 'down' && +buttons[i].getAttribute('id') < 5) {
                         clicked == true;
                         buttons[i].setAttribute('animation__pos', 'property:position;to: 0 ' + (pos.y + 0.5) + ' 0;easing:linear;dur:500');
                         buttons[i].setAttribute('animation__opa', 'property:material.opacity;to: ' + 1 / (1 + Math.abs(+buttons[i].getAttribute('id') - 1)) + ' ;easing:linear;dur:500');
@@ -442,7 +443,7 @@ AFRAME.registerComponent('wheel-arrow-listener', {
                                 b_en.removeAttribute('animation__scl');
                             }, 550, buttons[i], buttons[j])
                         }
-                    } else if (dir == 'down' && +buttons[i].getAttribute('id') < 5) {
+                    } else if (dir == 'up' && +buttons[i].getAttribute('id') < 5) {
                         clicked == true;
                         buttons[i].setAttribute('animation__pos', 'property:position;to: 0 ' + (pos.y - 0.5) + ' 0;easing:linear;dur:500');
                         buttons[i].setAttribute('animation__opa', 'property:material.opacity;to: ' + 1 / (1 + Math.abs(+buttons[i].getAttribute('id') - 3)) + ' ;easing:linear;dur:500');
@@ -471,7 +472,7 @@ AFRAME.registerComponent('wheel-arrow-listener', {
                     }
                 }
                 for (i = 0; i < buttons.length; i++) {
-                    if (dir == 'up') {
+                    if (dir == 'down') {
                         buttons[i].setAttribute('id', ((+buttons[i].getAttribute('id') + 1)));
                     } else {
                         buttons[i].setAttribute('id', ((+buttons[i].getAttribute('id') - 1)));
@@ -499,7 +500,6 @@ AFRAME.registerComponent('wheel-axis-listener', {
                 clicked = true;
                 var val = this.parentNode.parentNode.parentNode.getAttribute('value');
                 var pos = this.object3D.position;
-                console.log(pos);
                 selector = document.getElementById('sel_tri' + val);
                 selector.setAttribute('animation__pos', 'property:position;to: 0 ' + pos.y + ' 0.05;easing:linear;dur:500');
                 selector.setAttribute('axis', this.getAttribute('id')[0]);
@@ -555,6 +555,14 @@ AFRAME.registerComponent('wheel-select-listener', {
                     plotID.setAttribute('animation__depth', 'property: geometry.depth;to: 5;dur:1500;easing:linear');
                     plotID.setAttribute('animation__pos', 'property: position;to:-1 0 2.55;dur:1500;easing:linear');
                     line_to = '0 0 5';
+                    if (document.getElementById('labelx')) {
+                        var xlabel = document.getElementById('labelx');
+                        xlabel.object3D.position.set(xlabel.object3D.position.x, xlabel.object3D.position.y, 2.5);
+                    }
+                    if (document.getElementById('labely')) {
+                        var ylabel = document.getElementById('labely');
+                        ylabel.object3D.position.set(ylabel.object3D.position.x, ylabel.object3D.position.y, 2.5);
+                    }
                     // var ax = ['x', 'y', 'z'],
                     //     p = ['-.3 .65 0', '.3 .65 0'],
                     //     s = ['<', '>'], i, j;
@@ -840,26 +848,26 @@ function grid(ax1 = 'x', ax2 = 'y', idx = '', geo, oppAx = '') {
  */
 function axis_ticks(ax = 'x', range, idx, geo, key) {
     var plot = document.getElementById('plotbox' + idx);
-    var pos = { x: -2.5, y: -2.5, z: 2.5 };
+    var pos = { x: -2.5, y: -2.5, z: 0 };
     var q = [0, .25, .5, .75, 1];
     var i;
     for (i = 0; i < 5; i++) {
-        var pos = { x: -2.5, y: -2.5, z: -2.5 };
+        var pos = { x: -2.5, y: -2.5, z: 0 };
         if (!document.getElementById('tick' + ax + i)) {
             var text = document.createElement('a-text');
             text.setAttribute('id', 'tick' + ax + i);
             text.setAttribute('color', 'black');
             text.setAttribute('align', 'center');
-            text.setAttribute('look-at', '[camera]');
+            text.setAttribute('material','alphaTest:0.05')
+            // text.setAttribute('look-at', '[camera]');
             pos[ax] = pos[ax] + geo.width * q[i];
             switch (ax) {
                 case 'x':
                     pos.y = pos.y - .1;
-                    pos.z = 2.5;
                     break;
                 case 'y':
-                    pos.z = 2.5;
                     pos.x = pos.x - .1;
+                    text.setAttribute('align', 'right')
                     break;
                 case 'z':
                     pos.y = pos.y - .1;
@@ -870,38 +878,39 @@ function axis_ticks(ax = 'x', range, idx, geo, key) {
         } else {
             text = document.getElementById('tick' + ax + i)
         }
-        text.setAttribute('value', numeral(range[0] + (range[1] - range[0]) * q[i]).format(0, 0.0));
-        text.setAttribute('scale', '.5 .5');
+        text.setAttribute('value', numeral(range[0] + (range[1] - range[0]) * q[i]).format('0, 0.0'));
+        text.setAttribute('scale', '.75 .75');
         if (!document.getElementById('tick' + ax + i)) {
             plot.appendChild(text);
         }
     }
-    if (!document.getElementById('label' + ax + i)) {
+    if (!document.getElementById('label' + ax)) {
         var text = document.createElement('a-text');
-        text.setAttribute('id', 'label' + ax + i);
+        text.setAttribute('id', 'label' + ax);
         text.setAttribute('color', 'black');
         switch (ax) {
             case 'x':
                 text.setAttribute('align', 'left');
-                pos = { x: -2.3, y: -2.4, z: 2.55 };
+                pos = { x: -2.3, y: -2.6, z: 0 };
                 break;
             case 'y':
                 text.setAttribute('align', 'left');
-                pos = { x: -2.4, y: -2.3, z: 2.55 };
+                pos = { x: -2.6, y: -2.3, z: 0 };
                 text.object3D.rotation.set(0, 0, Math.PI / 2);
                 break;
             case 'z':
                 text.setAttribute('align', 'right');
                 text.object3D.rotation.set(0, 0, Math.PI / 4);
-                pos = { x: -2.65, y: -2.65, z: 2.55 };
+                pos = { x: -2.7, y: -2.7, z: 2.5 };
+                
         }
         text.object3D.position.set(pos.x, pos.y, pos.z);
     } else {
-        text = document.getElementById('label' + ax + i)
+        text = document.getElementById('label' + ax)
     }
     text.setAttribute('value', key);
-    text.setAttribute('scale', '.5 .5');
-    if (!document.getElementById('label' + ax + i)) {
+    text.setAttribute('scale', '.75 .75');
+    if (!document.getElementById('label' + ax)) {
         plot.appendChild(text);
     }
 };
