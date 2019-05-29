@@ -865,7 +865,7 @@ function axis_ticks(ax = 'x', range, idx, geo, key) {
     var i;
     for (i = 0; i < 5; i++) {
         var pos = { x: -2.5, y: -2.5, z: 0 };
-        if (!document.getElementById('tick' + ax + i)) {
+        if (!document.getElementById('tick' +idx+ ax + i)) {
             var text = document.createElement('a-text');
             text.setAttribute('id', 'tick' + ax + i);
             text.setAttribute('color', 'black');
@@ -890,17 +890,17 @@ function axis_ticks(ax = 'x', range, idx, geo, key) {
             }
             text.object3D.position.set(pos.x, pos.y, pos.z);
         } else {
-            text = document.getElementById('tick' + ax + i)
+            text = document.getElementById('tick' +idx+ ax + i)
         }
         text.setAttribute('value', numeral(range[0] + (range[1] - range[0]) * q[i]).format('0, 0.0'));
         text.setAttribute('scale', '.75 .75');
-        if (!document.getElementById('tick' + ax + i)) {
+        if (!document.getElementById('tick' +idx+ ax + i)) {
             plot.appendChild(text);
         }
     }
-    if (!document.getElementById('label' + ax)) {
+    if (!document.getElementById('label' + ax+idx)) {
         var text = document.createElement('a-text');
-        text.setAttribute('id', 'label' + ax);
+        text.setAttribute('id', 'label' + ax+idx);
         text.setAttribute('color', 'black');
         switch (ax) {
             case 'x':
@@ -920,11 +920,11 @@ function axis_ticks(ax = 'x', range, idx, geo, key) {
         }
         text.object3D.position.set(pos.x, pos.y, pos.z);
     } else {
-        text = document.getElementById('label' + ax)
+        text = document.getElementById('label' + ax+idx)
     }
     text.setAttribute('value', key);
     text.setAttribute('scale', '.75 .75');
-    if (!document.getElementById('label' + ax)) {
+    if (!document.getElementById('label' + ax+idx)) {
         plot.appendChild(text);
     }
 };
