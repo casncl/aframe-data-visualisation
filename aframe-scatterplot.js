@@ -178,7 +178,7 @@ AFRAME.registerComponent('show_cursorlistener', {
                 //
                 var plotbox = document.createElement('a-box');
                 plotbox.setAttribute('id', 'plotbox' + val);
-                plotbox.object3D.position.set(-1, 0, .055);
+                plotbox.object3D.position.set(1, 0, .055);
                 plotbox.setAttribute('geometry', {
                     height: 5,
                     width: 5,
@@ -186,11 +186,13 @@ AFRAME.registerComponent('show_cursorlistener', {
                 });
                 plotbox.setAttribute('material', {
                     color: 'green',
-                    opacity: .1,
+                    opacity: .05,
                     transparent: true,
-                    alphaTest: 0.05
+                    alphaTest: 0.001,
+                    side:'double'
                 });
                 plotbox.setAttribute('class', 'not-clickable');
+                this.parentNode.appendChild(plotbox);
                 // load the data into the window to not have to load it for every chang of data
                 d3.csv('simulated_data_2_random_2000.csv', type, function (error, data) {
                     window.value = data;
@@ -198,11 +200,11 @@ AFRAME.registerComponent('show_cursorlistener', {
                     wheel.setAttribute('value', [d3.keys(d3.values(window.value)[0])]);
                     wheel.setAttribute('id', 'wheel' + (val));
                     wheel.setAttribute('select-wheel', '');
-                    wheel.object3D.position.set(2.5, 0, 0);
+                    wheel.object3D.position.set(-2.7, 0, 0);
                     var sheet = document.getElementById('mycanvas' + (val));
-                    sheet.appendChild(wheel);
+                    var plotbox = document.getElementById('plotbox' + val);
+                    sheet.insertBefore(wheel,plotbox);
                 });
-                this.parentNode.appendChild(plotbox);
             } else { // if existent just make it visible again
                 var plotbox = document.getElementById('plotbox' + val);
                 plotbox.object3D.visible = true;
@@ -338,9 +340,10 @@ AFRAME.registerComponent('select-wheel', {
         // labels
         var b = this.el.getAttribute('value').split(',');
         var a = ['x', 'y', 'z'];
+        var g = ['grey','darkgrey','lightgrey'];
         // positions
         var tr_up = document.createElement('a-triangle');
-        tr_up.object3D.position.set(.75, 1.5, 0.05);
+        tr_up.object3D.position.set(-.75, 1.5, 0.05);
         tr_up.setAttribute('color', 'grey');
         tr_up.setAttribute('scale', '.5 .5');
         tr_up.setAttribute('class', 'clickable');
@@ -348,7 +351,7 @@ AFRAME.registerComponent('select-wheel', {
         tr_up.setAttribute('wheel-arrow-listener', 'direction:up');
         this.el.appendChild(tr_up);
         var tr_down = document.createElement('a-triangle');
-        tr_down.object3D.position.set(.75, -1.5, 0.05);
+        tr_down.object3D.position.set(-.75, -1.5, 0.05);
         tr_down.object3D.rotation.set(0, 0, Math.PI);
         tr_down.setAttribute('scale', '.5 .5');
         tr_down.setAttribute('color', 'grey');
@@ -358,17 +361,20 @@ AFRAME.registerComponent('select-wheel', {
         this.el.appendChild(tr_down);
         var tr_select = document.createElement('a-triangle');
         tr_select.setAttribute('id', 'sel_tri' + val);
-        tr_select.object3D.position.set(0, 0, 0.05);
-        tr_select.object3D.rotation.set(0, 0, Math.PI / 2);
+        tr_select.object3D.position.set(+0.05, 0, 0.05);
+        tr_select.object3D.rotation.set(0, 0, -Math.PI/2);
         tr_select.setAttribute('scale', '.5 .5');
         tr_select.setAttribute('color', 'grey');
         tr_select.setAttribute('class', 'clickable');
         tr_select.setAttribute('axis','y');
         tr_select.setAttribute('variable', b[2]);
         tr_select.setAttribute('wheel-select-listener', '');
+        var sel_text = buttontext('plot');
+        sel_text.object3D.rotation.set(0, 0, Math.PI/2);
+        tr_select.appendChild(sel_text);
         this.el.appendChild(tr_select);
         var buttons = document.createElement('a-entity');
-        buttons.object3D.position.set(.75, 0, 0);
+        buttons.object3D.position.set(-.75, 0, 0);
         buttons.setAttribute('id', this.el.getAttribute('id') + 'buttons');
         for (j = 0; j < b.length; j++) {
             var wheel_button = button(name = '', pos = '0 ' + ((j - 2) * 0.5) + ' 0', size = [.5, .75, .1], txt = b[j], idx = val);
@@ -376,8 +382,9 @@ AFRAME.registerComponent('select-wheel', {
                 wheel_button.object3D.visible = false;
                 wheel_button.removeAttribute('class');
             } else {
-                wheel_button.setAttribute('material', 'opacity:' + 1 / (1 + Math.abs(j - 2)));
-                wheel_button.setAttribute('material','alphaTest: 0.3');
+                wheel_button.setAttribute('material', 'color:' + g[Math.abs(j - 2)]);
+                wheel_button.setAttribute('scale',(1-Math.abs(j - 2)/10)+' 1 1');
+                // wheel_button.setAttribute('material','alphaTest: 0.3');
             }
             wheel_button.setAttribute('id', j);
             wheel_button.setAttribute('value', j);
@@ -385,7 +392,7 @@ AFRAME.registerComponent('select-wheel', {
         }
         this.el.appendChild(buttons);
         var axis_wheel = document.createElement('a-entity');
-        axis_wheel.object3D.position.set(-.5, 0, 0);
+        axis_wheel.object3D.position.set(.5, 0, 0);
         axis_wheel.setAttribute('id', this.el.getAttribute('id') + 'axes');
         for (j = 0; j < a.length; j++) {
             var axis_button = button(name = '', pos = '0 ' + ((j - 1) * 0.55) + ' 0', size = [.5, .5, .1], txt = a[j], idx = val);
@@ -415,67 +422,74 @@ AFRAME.registerComponent('wheel-arrow-listener', {
                 var val = this.parentNode.parentNode.getAttribute('value');
                 var b = this.parentNode.getAttribute('value').split(',');
                 var i;
+                var g = ['#808080','#A9A9A9','#D3D3D3'];
                 for (i = 0; i < buttons.length; i++) {
                     var pos = buttons[i].object3D.position;
                     if (dir == 'down' && +buttons[i].getAttribute('id') < 5) {
                         clicked == true;
-                        buttons[i].setAttribute('animation__pos', 'property:position;to: 0 ' + (pos.y + 0.5) + ' 0;easing:linear;dur:500');
-                        buttons[i].setAttribute('animation__opa', 'property:material.opacity;to: ' + 1 / (1 + Math.abs(+buttons[i].getAttribute('id') - 1)) + ' ;easing:linear;dur:500');
-                        setTimeout(function (b_cur) {
-                            b_cur.removeAttribute('animation__pos');
-                            b_cur.removeAttribute('animation__opa');
-                        }, 550, buttons[i])
                         if (buttons[i].getAttribute('id') == 4) {
-                            buttons[i].setAttribute('animation__scl', 'property:scale;to: 0 0 0;easing:linear;dur:500');
+                            buttons[i].setAttribute('animation__scl', 'property:scale;to: 0.1 0.1 0.1;easing:linear;dur:500');
                             var j = buttons[i].getAttribute('value') - 5;
                             if (j < 0) { j = b.length + j };
                             buttons[j].object3D.visible = true;
-                            buttons[j].setAttribute('class', 'clickable');
                             buttons[j].object3D.position.set(0, -1.5, 0)
+                            buttons[j].setAttribute('material','color:'+g[2]);
                             buttons[j].setAttribute('animation__pos', 'property:position;to: 0 -1 0;easing:linear;dur:500');
-                            buttons[j].setAttribute('animation__scl', 'property:scale;from: 0 0 0;to: 1 1 1;easing:linear;dur:500');
-                            buttons[j].setAttribute('animation__opa', 'property:material.opacity;from:0; to: 0.33 ;easing:linear;dur:500');
+                            buttons[j].setAttribute('animation__scl', 'property:scale;from: 0 0 0;to: .8 1 1;easing:linear;dur:500');
                             buttons[j].setAttribute('id', -1);
                             setTimeout(function (b_ex, b_en) {
                                 b_ex.removeAttribute('animation__scl');
-                                b_en.removeAttribute('animation__opa');
                                 b_en.removeAttribute('animation__pos');
                                 b_en.removeAttribute('animation__scl');
                             }, 550, buttons[i], buttons[j])
                         }
+                        else {
+                            buttons[i].setAttribute('animation__pos', 'property:position;to: 0 ' + (pos.y + 0.5) + ' 0;easing:linear;dur:500');
+                            buttons[i].setAttribute('animation__scl', 'property:scale;to: '+(1-Math.abs(buttons[i].getAttribute('id') - 1)/10)+' 1 1;easing:linear;dur:500');
+                            buttons[i].setAttribute('animation__col','property: components.material.material.color;type:color;to:'+g[Math.abs(buttons[i].getAttribute('id') - 1)]+';easing:linear;dur:500');
+                        setTimeout(function (b_cur) {
+                            b_cur.removeAttribute('animation__col')
+                            b_cur.removeAttribute('animation__pos');
+                            b_cur.removeAttribute('animation__scl');
+                        }, 550, buttons[i])
+                    }
                     } else if (dir == 'up' && +buttons[i].getAttribute('id') < 5) {
                         clicked == true;
-                        buttons[i].setAttribute('animation__pos', 'property:position;to: 0 ' + (pos.y - 0.5) + ' 0;easing:linear;dur:500');
-                        buttons[i].setAttribute('animation__opa', 'property:material.opacity;to: ' + 1 / (1 + Math.abs(+buttons[i].getAttribute('id') - 3)) + ' ;easing:linear;dur:500');
-                        setTimeout(function (b_cur) {
-                            b_cur.removeAttribute('animation__pos');
-                            b_cur.removeAttribute('animation__opa');
-                        }, 550, buttons[i])
                         if (buttons[i].getAttribute('id') == 0) {
                             buttons[i].setAttribute('animation__scl', 'property:scale;to: 0 0 0;easing:linear;dur:500');
                             var j = +buttons[i].getAttribute('value') + 5;
                             if (j >= buttons.length) { j = j - (buttons.length); };
                             buttons[j].object3D.visible = true;
-                            buttons[j].setAttribute('class', 'clickable');
                             buttons[j].object3D.position.set(0, 1.5, 0)
+                            buttons[j].setAttribute('material','color:'+g[2]);
                             buttons[j].setAttribute('animation__pos', 'property:position;to: 0 1 0;easing:linear;dur:500');
-                            buttons[j].setAttribute('animation__scl', 'property:scale;from: 0 0 0;to: 1 1 1;easing:linear;dur:500');
-                            buttons[j].setAttribute('animation__opa', 'property:material.opacity;from:0; to: 0.33 ;easing:linear;dur:500');
+                            buttons[j].setAttribute('animation__scl', 'property:scale;from: 0 0 0;to: .8 1 1;easing:linear;dur:500');
                             buttons[j].setAttribute('id', 5);
                             setTimeout(function (b_ex, b_en) {
                                 b_ex.removeAttribute('animation__scl');
-                                b_en.removeAttribute('animation__opa');
                                 b_en.removeAttribute('animation__pos');
                                 b_en.removeAttribute('animation__scl');
                             }, 550, buttons[i], buttons[j])
-                        }
-                    }
+                        }else{ 
+                            buttons[i].setAttribute('animation__pos', 'property:position;to: 0 ' + (pos.y - 0.5) + ' 0;easing:linear;dur:500');
+                            buttons[i].setAttribute('animation__scl', 'property:scale;to: '+(1-Math.abs(buttons[i].getAttribute('id') - 3)/10)+' 1 1;easing:linear;dur:500');
+                            buttons[i].setAttribute('animation__col','property: components.material.material.color;type:color;to:'+g[Math.abs(buttons[i].getAttribute('id') - 3)]+';easing:linear;dur:500');
+                         setTimeout(function (b_cur) {
+                            b_cur.removeAttribute('animation__pos');
+                            b_cur.removeAttribute('animation__scl');
+                            b_cur.removeAttribute('animation__col');
+                        }, 550, buttons[i])
+                    }                    }
                 }
                 for (i = 0; i < buttons.length; i++) {
                     if (dir == 'down') {
                         buttons[i].setAttribute('id', ((+buttons[i].getAttribute('id') + 1)));
                     } else {
-                        buttons[i].setAttribute('id', ((+buttons[i].getAttribute('id') - 1)));
+                        if (buttons[i].getAttribute('id')==0){
+                            buttons[i].setAttribute('id', buttons.length-1);    
+                        }else{
+                            buttons[i].setAttribute('id', ((+buttons[i].getAttribute('id') - 1)));
+                        }
                     }
                     if (buttons[i].getAttribute('id') == 2) {
                         var sel = document.getElementById('sel_tri' + val);
@@ -553,16 +567,14 @@ AFRAME.registerComponent('wheel-select-listener', {
                     grid('y', 'z', idx, geo, 'x');
                     origin.attr('animation', 'property: position;to:-2.5 -2.5 -2.5;dur:1500;easing:linear');
                     plotID.setAttribute('animation__depth', 'property: geometry.depth;to: 5;dur:1500;easing:linear');
-                    plotID.setAttribute('animation__pos', 'property: position;to:-1 0 2.55;dur:1500;easing:linear');
+                    plotID.setAttribute('animation__pos', 'property: position;to:1 0 2.55;dur:1500;easing:linear');
                     line_to = '0 0 5';
-                    if (document.getElementById('labelx')) {
-                        var xlabel = document.getElementById('labelx');
-                        xlabel.object3D.position.set(xlabel.object3D.position.x, xlabel.object3D.position.y, 2.5);
-                    }
-                    if (document.getElementById('labely')) {
-                        var ylabel = document.getElementById('labely');
-                        ylabel.object3D.position.set(ylabel.object3D.position.x, ylabel.object3D.position.y, 2.5);
-                    }
+                    plotID.childNodes.forEach( function(n){
+                        if (n.getAttribute('id').includes('x')||n.getAttribute('id').includes('y')){
+                            n.object3D.position.set(n.object3D.position.x, n.object3D.position.y, 2.5);    
+                        }
+                    })
+                    
                     // var ax = ['x', 'y', 'z'],
                     //     p = ['-.3 .65 0', '.3 .65 0'],
                     //     s = ['<', '>'], i, j;
@@ -872,6 +884,8 @@ function axis_ticks(ax = 'x', range, idx, geo, key) {
                 case 'z':
                     pos.y = pos.y - .1;
                     pos.x = pos.x - .1;
+                    pos.z = pos.z - 2.5;
+                    text.setAttribute('align', 'right')
                     text.object3D.rotation.set(0, 0, Math.PI / 4);
             }
             text.object3D.position.set(pos.x, pos.y, pos.z);
@@ -901,7 +915,7 @@ function axis_ticks(ax = 'x', range, idx, geo, key) {
             case 'z':
                 text.setAttribute('align', 'right');
                 text.object3D.rotation.set(0, 0, Math.PI / 4);
-                pos = { x: -2.7, y: -2.7, z: 2.5 };
+                pos = { x: -2.9, y: -2.7, z: 2.5 };
                 
         }
         text.object3D.position.set(pos.x, pos.y, pos.z);
