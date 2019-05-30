@@ -697,6 +697,8 @@ function buttontext(text, c = 'black', d = .05,offset=[0,0]) {
     buttontext.setAttribute('color', c);
     buttontext.setAttribute('align', 'center');
     buttontext.object3D.position.set(offset[0], offset[1], d);
+    // buttontext.setAttribute('zOffset',d);
+    buttontext.setAttribute('depthTest',false);
     return buttontext;
 };
 /**
