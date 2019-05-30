@@ -606,6 +606,7 @@ AFRAME.registerComponent('wheel-select-listener', {
             var scale = d3.scaleLinear()
                 .domain(extent)
                 .range(range);
+                console.log(scale);
             var selection = origin.selectAll('a-plane')
                      .data(plotdata);
             drawData(origin,selection,plotdata,10,key,scale);
@@ -920,7 +921,7 @@ function axis_ticks(ax = 'x', range, idx, key, vis=true) {
         }
         text.setAttribute('value', numeral(range[0] + (range[1] - range[0]) * q[i]).format('0, 0.0'));
         text.setAttribute('scale', '.75 .75');
-        // text.object3D.visible=vis;
+        text.object3D.visible=vis;
         if (!document.getElementById('tick' +idx+ ax + i)) {
             axis.appendChild(text);
         }
