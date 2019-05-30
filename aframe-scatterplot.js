@@ -79,6 +79,16 @@ AFRAME.registerComponent('axis_buttons', {
             // }
             this.el.appendChild(ax_button);
         }
+        d3.csv('simulated_data_2_random_2000.csv', type, function (error, data) {
+            window.value = data;
+            var wheel = document.createElement('a-entity');
+            wheel.setAttribute('value', [d3.keys(d3.values(window.value)[0])]);
+            wheel.setAttribute('id', 'wheel' + (val));
+            wheel.setAttribute('select-wheel', '');
+            wheel.object3D.position.set(-2.7, 0, 0);
+            var sheet = document.getElementById('mycanvas' + (val));
+            sheet.appendChild(wheel);
+        });
     }
 });
 /**
@@ -160,10 +170,21 @@ AFRAME.registerComponent('show_cursorlistener', {
             var val = this.parentNode.getAttribute('value')
             // show(buttons = ['x' + val, 'y' + val, 'z' + val]);
             // create plotting area if none exists yet
+            if (!document.getElementById('origin' + val)) { // creates the plot origin if there is none
+                var origin = document.createElement('a-entity');
+                    origin.setAttribute('id', 'origin' + val)
+                    origin.setAttribute('position', (-1.5) + ' ' + (-2.5) + ' 0.05');
+                this.parentNode.appendChild(origin);
+            } else {
+                var origin = d3.select('#origin' + val);
+            }
+            axis_ticks('x',[0,0],val,'',false);
+            axis_ticks('y',[0,0],val,'',false);
+            axis_ticks('z',[0,0],val,'',false);
             if (!document.getElementById('plotbox' + val)) {
                 var plotbox = document.createElement('a-box');
                 plotbox.setAttribute('id', 'plotbox' + val);
-                plotbox.object3D.position.set(1, 0, .055);
+                plotbox.object3D.position.set(2.5, 2.5, 0);
                 plotbox.setAttribute('geometry', {
                     height: 5,
                     width: 5,
@@ -177,19 +198,22 @@ AFRAME.registerComponent('show_cursorlistener', {
                     side:'double'
                 });
                 plotbox.setAttribute('class', 'not-clickable');
-                this.parentNode.appendChild(plotbox);
+                origin.appendChild(plotbox);
+                
+                
+                
                 // load the data into the window to not have to load it for every chang of data
-                d3.csv('simulated_data_2_random_2000.csv', type, function (error, data) {
-                    window.value = data;
-                    var wheel = document.createElement('a-entity');
-                    wheel.setAttribute('value', [d3.keys(d3.values(window.value)[0])]);
-                    wheel.setAttribute('id', 'wheel' + (val));
-                    wheel.setAttribute('select-wheel', '');
-                    wheel.object3D.position.set(-2.7, 0, 0);
-                    var sheet = document.getElementById('mycanvas' + (val));
-                    var plotbox = document.getElementById('plotbox' + val);
-                    sheet.insertBefore(wheel,plotbox);
-                });
+                // d3.csv('simulated_data_2_random_2000.csv', type, function (error, data) {
+                //     window.value = data;
+                //     var wheel = document.createElement('a-entity');
+                //     wheel.setAttribute('value', [d3.keys(d3.values(window.value)[0])]);
+                //     wheel.setAttribute('id', 'wheel' + (val));
+                //     wheel.setAttribute('select-wheel', '');
+                //     wheel.object3D.position.set(-2.7, 0, 0);
+                //     var sheet = document.getElementById('mycanvas' + (val));
+                //     // var plotbox = document.getElementById('plotbox' + val);
+                //     sheet.appendChild(wheel);
+                // });
             } else { // if existent just make it visible again
                 var plotbox = document.getElementById('plotbox' + val);
                 plotbox.object3D.visible = true;
@@ -563,9 +587,9 @@ AFRAME.registerComponent('wheel-select-listener', {
                     grid('z', 'x', idx, geo, 'y');
                     grid('z', 'y', idx, geo, 'x');
                     grid('y', 'z', idx, geo, 'x');
-                    origin.attr('animation', 'property: position;to:-2.5 -2.5 -2.5;dur:1500;easing:linear');
+                    // origin.attr('animation', 'property: position;to:-2.5 -2.5 -2.5;dur:1500;easing:linear');
                     plotID.setAttribute('animation__depth', 'property: geometry.depth;to: 5;dur:1500;easing:linear');
-                    plotID.setAttribute('animation__pos', 'property: position;to:1 0 2.55;dur:1500;easing:linear');
+                    plotID.setAttribute('animation__pos', 'property: position;to:2.5 2.5 2.5;dur:1500;easing:linear');
                     line_to = '0 0 5';
                     plotID.childNodes.forEach( function(n){
                         if (n.getAttribute('id').includes('x')||n.getAttribute('id').includes('y')){
@@ -578,7 +602,7 @@ AFRAME.registerComponent('wheel-select-listener', {
                 origin.attr('line__' + axis, 'start: 0 0 0; end: ' + line_to + ';color:gray');
             }
             var extent = d3.extent(plotdata, function (d) { return +d[key]; });
-            axis_ticks(axis, extent, idx, geo, key);
+            axis_ticks(axis, extent, idx, key);
             var scale = d3.scaleLinear()
                 .domain(extent)
                 .range(range);
@@ -849,13 +873,19 @@ function grid(ax1 = 'x', ax2 = 'y', idx = '', geo, oppAx = '') {
  * @param {struct} geo - geometry of the plot area
  * @param {string} key - name of the variable on axis
  */
-function axis_ticks(ax = 'x', range, idx, geo, key) {
-    var plot = document.getElementById('plotbox' + idx);
-    var pos = { x: -2.5, y: -2.5, z: 0 };
+function axis_ticks(ax = 'x', range, idx, key, vis=true) {
+    var orig = document.getElementById('origin' + idx);
+    var pos = { x: 0, y: 0, z: 0 };
     var q = [0, .25, .5, .75, 1];
     var i;
+    if(!document.getElementById(ax+'axis'+idx)){
+        var axis = document.createElement('a-entity');
+        axis.setAttribute('id',ax+'axis'+idx);
+    }else {
+        var axis = document.getElementById(ax+'axis'+idx);
+    }
     for (i = 0; i < 5; i++) {
-        var pos = { x: -2.5, y: -2.5, z: 0 };
+        var pos = { x: 0, y: 0, z: 0 };
         if (!document.getElementById('tick' +idx+ ax + i)) {
             var text = document.createElement('a-text');
             text.setAttribute('id', 'tick' + idx + ax + i);
@@ -863,31 +893,36 @@ function axis_ticks(ax = 'x', range, idx, geo, key) {
             text.setAttribute('align', 'left');
             text.setAttribute('material','alphaTest:0.05')
             // text.setAttribute('look-at', '[camera]');
-            pos[ax] = pos[ax] + geo.width * q[i];
+            pos[ax] = pos[ax] + 5 * q[i];
             switch (ax) {
                 case 'x':
                     pos.y = pos.y - .1;
+                    text.object3D.position.set(pos.x, pos.y, pos.z);
                     break;
                 case 'y':
                     pos.x = pos.x - .1;
                     text.setAttribute('align', 'right');
                     text.setAttribute('baseline','bottom');
+                    text.object3D.position.set(pos.x, pos.y, pos.z);
                     break;
                 case 'z':
                     pos.y = pos.y - .1;
                     pos.x = pos.x - .1;
-                    pos.z = pos.z - 2.5;
                     text.setAttribute('align', 'right')
                     text.object3D.rotation.set(0, 0, Math.PI / 4);
             }
-            text.object3D.position.set(pos.x, pos.y, pos.z);
         } else {
             text = document.getElementById('tick' +idx+ ax + i)
         }
+        if (ax=='z' && vis){
+            pos[ax] = pos[ax] + 5 * q[i];
+            text.setAttribute('animation__pos','property:position;to: 0 0 '+pos.z+';easing:linear;dur:1500');
+        }
         text.setAttribute('value', numeral(range[0] + (range[1] - range[0]) * q[i]).format('0, 0.0'));
         text.setAttribute('scale', '.75 .75');
+        // text.object3D.visible=vis;
         if (!document.getElementById('tick' +idx+ ax + i)) {
-            plot.appendChild(text);
+            axis.appendChild(text);
         }
     }
     if (!document.getElementById('label' + ax+idx)) {
@@ -897,27 +932,39 @@ function axis_ticks(ax = 'x', range, idx, geo, key) {
         switch (ax) {
             case 'x':
                 text.setAttribute('align', 'left');
-                pos = { x: -2.2, y: -2.6, z: 0 };
+                pos = { x: .3, y: -.1, z: 0 };
                 break;
             case 'y':
                 text.setAttribute('align', 'left');
-                pos = { x: -2.6, y: -2.2, z: 0 };
+                pos = { x: -.1, y: .3, z: 0 };
                 text.object3D.rotation.set(0, 0, Math.PI / 2);
                 break;
             case 'z':
                 text.setAttribute('align', 'right');
                 text.object3D.rotation.set(0, 0, Math.PI / 4);
-                pos = { x: -2.9, y: -2.7, z: 2.5 };
+                pos = { x: -.4, y: -.3, z: 0 };
                 
         }
         text.object3D.position.set(pos.x, pos.y, pos.z);
     } else {
         text = document.getElementById('label' + ax+idx)
     }
+    if (ax=='z' && vis){
+        // pos = { x: -.4, y: -.3, z: 5 };
+        text.setAttribute('animation__pos','property:position;to: -.4 -.3 5;easing:linear;dur:1500')
+        var xaxis = document.getElementById('xaxis'+idx);
+        xaxis.setAttribute('animation__pos','property:position;to: 0 0 5;easing:linear;dur:1500')
+        var yaxis = document.getElementById('yaxis'+idx);
+        yaxis.setAttribute('animation__pos','property:position;to: 0 0 5;easing:linear;dur:1500')
+    }
     text.setAttribute('value', key);
     text.setAttribute('scale', '.75 .75');
+    text.object3D.visible=vis;
     if (!document.getElementById('label' + ax+idx)) {
-        plot.appendChild(text);
+        axis.appendChild(text);
+    }
+    if (!document.getElementById(ax+'axis' +idx)) {
+        orig.appendChild(axis);
     }
 };
 /**
