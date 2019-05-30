@@ -161,21 +161,6 @@ AFRAME.registerComponent('show_cursorlistener', {
             // show(buttons = ['x' + val, 'y' + val, 'z' + val]);
             // create plotting area if none exists yet
             if (!document.getElementById('plotbox' + val)) {
-                // var plotplane=document.createElement('a-plane');
-                // plotplane.object3D.position.set(0, 0, 3);
-                // plotplane.object3D.rotation.set(90,0,0);
-                // plotplane.setAttribute('geometry', {
-                //     height: 5,
-                //     width: 5
-                // });
-                // plotplane.setAttribute('material', {
-                //     color: 'green',
-                //     opacity: .1,
-                //     transparent: true,
-                //     alphaTest: 0.05
-                // });
-                // plotplane.setAttribute('class', 'not-clickable');
-                //
                 var plotbox = document.createElement('a-box');
                 plotbox.setAttribute('id', 'plotbox' + val);
                 plotbox.object3D.position.set(1, 0, .055);
@@ -215,7 +200,7 @@ AFRAME.registerComponent('show_cursorlistener', {
 /**
  * @desc AFRAME component that hides the buttons and the plot area on a click
  */
-AFRAME.registerComponent('hide_cursorlistener', { // hides the plot and the buttons
+AFRAME.registerComponent('hide_cursorlistener', { 
     init: function () {
         this.el.addEventListener('click', function () {
             var val = this.parentNode.getAttribute('value')
@@ -332,7 +317,7 @@ AFRAME.registerComponent('axis_cursorlistener', {
 
 });
 /**
- * @desc prototyping an AFRAME component for wheel selection. 
+ * @desc AFRAME component for a wheel based selection tool
  */
 AFRAME.registerComponent('select-wheel', {
     init: function () {
@@ -341,7 +326,7 @@ AFRAME.registerComponent('select-wheel', {
         var b = this.el.getAttribute('value').split(',');
         var a = ['x', 'y', 'z'];
         var g = ['grey','darkgrey','lightgrey'];
-        // positions
+        // button up
         var tr_up = document.createElement('a-triangle');
         tr_up.object3D.position.set(-.75, 1.5, 0.05);
         tr_up.setAttribute('color', 'grey');
@@ -350,6 +335,7 @@ AFRAME.registerComponent('select-wheel', {
         tr_up.setAttribute('value', 'up');
         tr_up.setAttribute('wheel-arrow-listener', 'direction:up');
         this.el.appendChild(tr_up);
+        // button spin down
         var tr_down = document.createElement('a-triangle');
         tr_down.object3D.position.set(-.75, -1.5, 0.05);
         tr_down.object3D.rotation.set(0, 0, Math.PI);
@@ -359,53 +345,57 @@ AFRAME.registerComponent('select-wheel', {
         tr_down.setAttribute('value', 'down');
         tr_down.setAttribute('wheel-arrow-listener', 'direction:down');
         this.el.appendChild(tr_down);
+        // button to select and plot
         var tr_select = document.createElement('a-triangle');
         tr_select.setAttribute('id', 'sel_tri' + val);
-        tr_select.object3D.position.set(+0.05, 0, 0.05);
+        tr_select.object3D.position.set(-0.05, -.5, 0.05);
         tr_select.object3D.rotation.set(0, 0, -Math.PI/2);
         tr_select.setAttribute('scale', '.5 .5');
         tr_select.setAttribute('color', 'grey');
         tr_select.setAttribute('class', 'clickable');
-        tr_select.setAttribute('axis','y');
+        tr_select.setAttribute('axis','x');
         tr_select.setAttribute('variable', b[2]);
         tr_select.setAttribute('wheel-select-listener', '');
-        var sel_text = buttontext('plot');
+        var sel_text = buttontext('plot',c='black',d='0.05',offset=[0,-.1]);
         sel_text.object3D.rotation.set(0, 0, Math.PI/2);
+        sel_text.setAttribute('scale','1.5 1.5');
+        sel_text.setAttribute('align','center');
         tr_select.appendChild(sel_text);
         this.el.appendChild(tr_select);
+        // creates the wheel entries
         var buttons = document.createElement('a-entity');
         buttons.object3D.position.set(-.75, 0, 0);
         buttons.setAttribute('id', this.el.getAttribute('id') + 'buttons');
         for (j = 0; j < b.length; j++) {
-            var wheel_button = button(name = '', pos = '0 ' + ((j - 2) * 0.5) + ' 0', size = [.5, .75, .1], txt = b[j], idx = val);
+            var wheel_button = button(name = '',pos = '0 '+((j-2)*0.5)+' 0', size = [.5, .75, .1], txt = b[j], idx = val);
             if (j > 4) {
                 wheel_button.object3D.visible = false;
-                wheel_button.removeAttribute('class');
             } else {
-                wheel_button.setAttribute('material', 'color:' + g[Math.abs(j - 2)]);
-                wheel_button.setAttribute('scale',(1-Math.abs(j - 2)/10)+' 1 1');
-                // wheel_button.setAttribute('material','alphaTest: 0.3');
+                wheel_button.setAttribute('material','color:'+ g[Math.abs(j-2)]);
+                wheel_button.setAttribute('scale',(1-Math.abs(j-2)/10)+' 1 1');
             }
+            wheel_button.removeAttribute('class');
             wheel_button.setAttribute('id', j);
             wheel_button.setAttribute('value', j);
             buttons.appendChild(wheel_button);
         }
         this.el.appendChild(buttons);
-        var axis_wheel = document.createElement('a-entity');
-        axis_wheel.object3D.position.set(.5, 0, 0);
-        axis_wheel.setAttribute('id', this.el.getAttribute('id') + 'axes');
+        // creates axis buttons
+        var axes = document.createElement('a-entity');
+        axes.object3D.position.set(.5, 0, 0);
+        axes.setAttribute('id', this.el.getAttribute('id') + 'axes');
         for (j = 0; j < a.length; j++) {
             var axis_button = button(name = '', pos = '0 ' + ((j - 1) * 0.55) + ' 0', size = [.5, .5, .1], txt = a[j], idx = val);
             axis_button.setAttribute('id', a[j] + val);
             axis_button.setAttribute('value', a[j] + val);
             axis_button.setAttribute('wheel-axis-listener', '');
-            axis_wheel.appendChild(axis_button);
+            axes.appendChild(axis_button);
         }
-        this.el.appendChild(axis_wheel);
+        this.el.appendChild(axes);
     }
 })
 /**
- * @desc prototyping an AFRAME component for wheel selection. 
+ * @desc AFRAME component: Listener for direction arrows to spin the wheel 
  */
 AFRAME.registerComponent('wheel-arrow-listener', {
     schema: {
@@ -447,11 +437,11 @@ AFRAME.registerComponent('wheel-arrow-listener', {
                             buttons[i].setAttribute('animation__pos', 'property:position;to: 0 ' + (pos.y + 0.5) + ' 0;easing:linear;dur:500');
                             buttons[i].setAttribute('animation__scl', 'property:scale;to: '+(1-Math.abs(buttons[i].getAttribute('id') - 1)/10)+' 1 1;easing:linear;dur:500');
                             buttons[i].setAttribute('animation__col','property: components.material.material.color;type:color;to:'+g[Math.abs(buttons[i].getAttribute('id') - 1)]+';easing:linear;dur:500');
-                        setTimeout(function (b_cur) {
-                            b_cur.removeAttribute('animation__col')
-                            b_cur.removeAttribute('animation__pos');
-                            b_cur.removeAttribute('animation__scl');
-                        }, 550, buttons[i])
+                            setTimeout(function (b_cur) {
+                                b_cur.removeAttribute('animation__pos');
+                                b_cur.removeAttribute('animation__scl');
+                                b_cur.removeAttribute('animation__col');
+                                }, 550, buttons[i])
                     }
                     } else if (dir == 'up' && +buttons[i].getAttribute('id') < 5) {
                         clicked == true;
@@ -474,12 +464,14 @@ AFRAME.registerComponent('wheel-arrow-listener', {
                             buttons[i].setAttribute('animation__pos', 'property:position;to: 0 ' + (pos.y - 0.5) + ' 0;easing:linear;dur:500');
                             buttons[i].setAttribute('animation__scl', 'property:scale;to: '+(1-Math.abs(buttons[i].getAttribute('id') - 3)/10)+' 1 1;easing:linear;dur:500');
                             buttons[i].setAttribute('animation__col','property: components.material.material.color;type:color;to:'+g[Math.abs(buttons[i].getAttribute('id') - 3)]+';easing:linear;dur:500');
-                         setTimeout(function (b_cur) {
-                            b_cur.removeAttribute('animation__pos');
-                            b_cur.removeAttribute('animation__scl');
-                            b_cur.removeAttribute('animation__col');
-                        }, 550, buttons[i])
-                    }                    }
+                            setTimeout(function (b_cur) {
+                                b_cur.removeAttribute('animation__pos');
+                                b_cur.removeAttribute('animation__scl');
+                                b_cur.removeAttribute('animation__col');
+                                }, 550, buttons[i])
+                        }
+                    }
+                    
                 }
                 for (i = 0; i < buttons.length; i++) {
                     if (dir == 'down') {
@@ -503,6 +495,9 @@ AFRAME.registerComponent('wheel-arrow-listener', {
         })
     }
 })
+/**
+ * @desc AFRAME component: Listener for the axis buttons that turn the respective axis active
+ */
 AFRAME.registerComponent('wheel-axis-listener', {
     schema: {
         clicked: { type: 'bool', default: false }
@@ -524,6 +519,9 @@ AFRAME.registerComponent('wheel-axis-listener', {
         })
     }
 })
+/**
+ * @desc AFRAME component Listener for the plot button which plots the selected variable on the selected axis.
+ */
 AFRAME.registerComponent('wheel-select-listener', {
     schema: {
         clicked: { type: 'bool', default: false }
@@ -574,24 +572,7 @@ AFRAME.registerComponent('wheel-select-listener', {
                             n.object3D.position.set(n.object3D.position.x, n.object3D.position.y, 2.5);    
                         }
                     })
-                    
-                    // var ax = ['x', 'y', 'z'],
-                    //     p = ['-.3 .65 0', '.3 .65 0'],
-                    //     s = ['<', '>'], i, j;
-                    // for (i = 0; i < 3; i++) {
-                    //     for (j = 0; j < 2; j++) {
-                    //         document.getElementById(ax[i] + idx).appendChild(rot_button(ax[i], p[j], s[j], idx));
-                    //     }
-                    // }
-                    // // create button that centers the plot to the original position
-                    // var ctr_button = button('', '0 -4.75 0', [.3, .65, .08], 'center', idx)
-                    // ctr_button.addEventListener('click', function () {
-                    //     plotID.removeAttribute('animation__rot');
-                    //     plotID.setAttribute('animation__rot', 'property:rotation;to: 0 0 0;dur:1500;easing:linear;autoplay:true');
-                    // });
-                    // var wall = document.getElementById('mycanvas' + idx);
-                    // wall.appendChild(ctr_button);
-            }
+                }
             //  draws axis if there is none
             if (origin.select('line__' + axis).empty()) {
                 origin.attr('line__' + axis, 'start: 0 0 0; end: ' + line_to + ';color:gray');
@@ -601,19 +582,26 @@ AFRAME.registerComponent('wheel-select-listener', {
             var scale = d3.scaleLinear()
                 .domain(extent)
                 .range(range);
-            // plotting the data points
             var selection = origin.selectAll('a-plane')
-                .data(plotdata);
-            selection.enter().append('a-plane')
-                .attr('geometry', 'height:.1;width:.1') // size
-                .attr('material', 'src:#circle')        // texture
-                .attr('material', 'alphaTest:0.5')      // enable alpha
-                .attr('material', 'color:black')        // color
-                .attr('position', '0 0 0')              // position
-                .attr('look-at', '[camera]')            // always faces camera
-                .attr('animation', function (d) {
-                    return 'property: position; to: ' + scale(d[key]) + ' 0 0;dur:1500;easing:linear';
-                })
+                     .data(plotdata);
+            drawData(origin,selection,plotdata,10,key,scale);
+            // plotting the data points
+            // var selection = origin.selectAll('a-plane')
+            //         .data(plotdata);
+            // setTimeout( function(o){ 
+            //     var selection = o.selectAll('a-plane')
+            //         .data(plotdata);
+            //     selection.enter().append('a-plane')
+            //         .attr('geometry', 'height:.1;width:.1') // size
+            //         .attr('material', 'src:#circle')        // texture
+            //         .attr('material', 'alphaTest:0.5')      // enable alpha
+            //     .attr('material', 'color:black')        // color
+            //     .attr('position', '0 0 0')              // position
+            //     .attr('look-at', '[camera]')            // always faces camera
+            //     .attr('animation', function (d) {
+            //         return 'property: position; to: ' + scale(d[key]) + ' 0 0;dur:1500;easing:linear';
+            //     })
+            // },0,origin);
             if (axis == 'z') {
                 var colorScale = d3.scaleSequential()
                     .domain(extent)
@@ -702,13 +690,13 @@ function type(d) {
  * @param float d - distance of the label to the button
  * @return an a-text entity
  */
-function buttontext(text, c = 'black', d = .05) {
+function buttontext(text, c = 'black', d = .05,offset=[0,0]) {
     var buttontext = document.createElement('a-text');
     buttontext.setAttribute('value', text);
     buttontext.setAttribute('width', '5');
     buttontext.setAttribute('color', c);
     buttontext.setAttribute('align', 'center');
-    buttontext.object3D.position.set(0, 0, d);
+    buttontext.object3D.position.set(offset[0], offset[1], d);
     return buttontext;
 };
 /**
@@ -816,7 +804,7 @@ function hide(buttons = '') {
  * @desc shows the listed buttons
  * @param string array buttons - list of object names to made visible
  */
-function show(buttons = '') {// shows the listed buttons
+function show(buttons = '') {
     var i;
     for (i = 0; i < buttons.length; i++) {
         var b = document.getElementById(buttons[i]);
@@ -853,10 +841,11 @@ function grid(ax1 = 'x', ax2 = 'y', idx = '', geo, oppAx = '') {
 };
 /**
  * @desc creates labels on the axis 
- * @param string ax - axis which should be labeled
- * @param array range - range of the data
- * @param int idx - index of the plot area
- * @param struct geo - geometry of the plot area
+ * @param {string} ax - axis which should be labeled
+ * @param {array} range - range of the data
+ * @param {int} idx - index of the plot area
+ * @param {struct} geo - geometry of the plot area
+ * @param {string} key - name of the variable on axis
  */
 function axis_ticks(ax = 'x', range, idx, geo, key) {
     var plot = document.getElementById('plotbox' + idx);
@@ -867,9 +856,9 @@ function axis_ticks(ax = 'x', range, idx, geo, key) {
         var pos = { x: -2.5, y: -2.5, z: 0 };
         if (!document.getElementById('tick' +idx+ ax + i)) {
             var text = document.createElement('a-text');
-            text.setAttribute('id', 'tick' + ax + i);
+            text.setAttribute('id', 'tick' + idx + ax + i);
             text.setAttribute('color', 'black');
-            text.setAttribute('align', 'center');
+            text.setAttribute('align', 'left');
             text.setAttribute('material','alphaTest:0.05')
             // text.setAttribute('look-at', '[camera]');
             pos[ax] = pos[ax] + geo.width * q[i];
@@ -879,7 +868,8 @@ function axis_ticks(ax = 'x', range, idx, geo, key) {
                     break;
                 case 'y':
                     pos.x = pos.x - .1;
-                    text.setAttribute('align', 'right')
+                    text.setAttribute('align', 'right');
+                    text.setAttribute('baseline','bottom');
                     break;
                 case 'z':
                     pos.y = pos.y - .1;
@@ -905,11 +895,11 @@ function axis_ticks(ax = 'x', range, idx, geo, key) {
         switch (ax) {
             case 'x':
                 text.setAttribute('align', 'left');
-                pos = { x: -2.3, y: -2.6, z: 0 };
+                pos = { x: -2.2, y: -2.6, z: 0 };
                 break;
             case 'y':
                 text.setAttribute('align', 'left');
-                pos = { x: -2.6, y: -2.3, z: 0 };
+                pos = { x: -2.6, y: -2.2, z: 0 };
                 text.object3D.rotation.set(0, 0, Math.PI / 2);
                 break;
             case 'z':
@@ -927,4 +917,39 @@ function axis_ticks(ax = 'x', range, idx, geo, key) {
     if (!document.getElementById('label' + ax+idx)) {
         plot.appendChild(text);
     }
+};
+/**
+ * @desc draws the data in batches
+ * @param {struct} origin - origion point of the plot
+ * @param {struct} selection - d3 selection of the data points
+ * @param {struct} plotdata - the data loaded in 
+ * @param {int} batchSize - size of the batches
+ * @param {string} key - name of the variable to be plotted
+ * @param {struct} scale - scale of the data
+ */
+function drawData(origin,selection,plotdata,batchSize,key,scale){
+    function drawBatch(batchNumber){
+        return function(){
+            var startIdx = batchNumber*batchSize,
+                stopIdx = Math.min(plotdata.length, startIdx+batchSize),
+                enterSel = d3.selectAll(selection.enter()._groups[0].slice(startIdx,stopIdx));
+
+            enterSel.each(function(d,i){
+                var newElement = origin.append('a-plane');
+                    enterSel[i] = newElement;
+                    newElement.__data__ = this.__data__;
+                    newElement._groups[0][0].setAttribute('geometry', 'height:.1;width:.1') ;
+                    newElement._groups[0][0].setAttribute('material', 'src:#circle')        ;
+                    newElement._groups[0][0].setAttribute('material', 'alphaTest:0.5')      ;
+                    newElement._groups[0][0].setAttribute('material', 'color:black')        ;
+                    newElement._groups[0][0].setAttribute('position', '0 0 0')              ;
+                    newElement._groups[0][0].setAttribute('look-at', '[camera]')  ;
+                    newElement._groups[0][0].setAttribute('animation', 'property: position; to: ' + scale(newElement.__data__[key]) + ' 0 0;dur:1500;easing:linear');
+                    })
+                if (stopIdx < plotdata.length){
+                    setTimeout(drawBatch(batchNumber+1),0);
+            }
+        };
+    }
+    setTimeout(drawBatch(0),0); 
 };
