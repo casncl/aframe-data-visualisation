@@ -58,25 +58,14 @@ AFRAME.registerComponent('axis_buttons', {
     init: function () {
         var val = this.el.getAttribute('value');
         // labels
-        // var b = ['x', 'y', 'z', 'show', 'hide'];
-        var b = ['show', 'hide'];
+        var b = ['show', 'hide', 'help'];
         // positions
-        // var bx = [0.15, 0.775, 0.15, 0.2, 0.8].map(function (x) { return 10 * (x - .5) });
-        var bx = [0.2, 0.8].map(function (x) { return 10 * (x - .5) });
-        // var by = [0.3, 0.65, 0.7, 0.2, 0.2].map(function (x) { return 15 * (x - .5) });
-        var by = [0.2, 0.2].map(function (x) { return 15 * (x - .5) });
-        for (j = 0; j < 2; j++) {
+        var bx = [0.2, 0.8, .5].map(function (x) { return 10 * (x - .5) });
+        var by = [0.2, 0.2, .15].map(function (x) { return 15 * (x - .5) });
+        for (j = 0; j < b.length; j++) {
             var ax_button = button(name = '', pos = bx[j] + ' ' + by[j] + ' 0', size = [.5, .75, .1], txt = b[j], idx = val);
             ax_button.setAttribute('value', b[j]);
-            // if (b[j] == "x" || b[j] == "y" || b[j] == "z") {
-            //     ax_button.setAttribute('axis_cursorlistener', { axis: b[j], active: false });
-            // } else {
             ax_button.setAttribute(b[j] + '_cursorlistener', '');
-            // }
-            // if (j < 3) {
-            //     ax_button.object3D.visible = false;
-            //     ax_button.removeAttribute('class', 'clickable');
-            // }
             this.el.appendChild(ax_button);
         }
         d3.csv('simulated_data_2_random_2000.csv', type, function (error, data) {
@@ -94,7 +83,7 @@ AFRAME.registerComponent('axis_buttons', {
 /**
  * @desc AFRAME component that listens for a click which loads the respective variable data to the plotpoints
  */
-AFRAME.registerComponent('data_cursorlistener', {
+AFRAME.registerComponent('data_cursorlistener', { // not used
     schema: {
         axis: { default: 'x' }
     },
@@ -165,72 +154,116 @@ AFRAME.registerComponent('data_cursorlistener', {
  * @desc AFRAME component that makes the axis buttons visible and creates the plot area
  */
 AFRAME.registerComponent('show_cursorlistener', {
-    init: function () {
+    schema: {
+        loaded: { type: 'boolean', default: false },
+        loading: { type: 'boolean', default: false }
+    },
+    update: function () {
+        var loaded = this.data.loaded;
+        var loading = this.data.loading;
         this.el.addEventListener('click', function () {
             var val = this.parentNode.getAttribute('value')
-            // show(buttons = ['x' + val, 'y' + val, 'z' + val]);
-            // create plotting area if none exists yet
-            if (!document.getElementById('origin' + val)) { // creates the plot origin if there is none
-                var origin = document.createElement('a-entity');
+            var plotdata = window.value
+           // create plotting area if none exists yet
+            if (!loading) {
+                if (!document.getElementById('origin' + val)) { // creates the plot origin if there is none
+                    var origin = document.createElement('a-entity');
                     origin.setAttribute('id', 'origin' + val)
                     origin.setAttribute('position', (-1.5) + ' ' + (-2.5) + ' 0.05');
-                this.parentNode.appendChild(origin);
-            } else {
-                var origin = d3.select('#origin' + val);
-            }
-            axis_ticks('x',[0,0],val,'',false);
-            axis_ticks('y',[0,0],val,'',false);
-            axis_ticks('z',[0,0],val,'',false);
-            if (!document.getElementById('plotbox' + val)) {
-                var plotbox = document.createElement('a-box');
-                plotbox.setAttribute('id', 'plotbox' + val);
-                plotbox.object3D.position.set(2.5, 2.5, 0);
-                plotbox.setAttribute('geometry', {
-                    height: 5,
-                    width: 5,
-                    depth: .1
-                });
-                plotbox.setAttribute('material', {
-                    color: 'green',
-                    opacity: .05,
-                    transparent: true,
-                    alphaTest: 0.001,
-                    side:'double'
-                });
-                plotbox.setAttribute('class', 'not-clickable');
-                origin.appendChild(plotbox);
-                
-                
-                
-                // load the data into the window to not have to load it for every chang of data
-                // d3.csv('simulated_data_2_random_2000.csv', type, function (error, data) {
-                //     window.value = data;
-                //     var wheel = document.createElement('a-entity');
-                //     wheel.setAttribute('value', [d3.keys(d3.values(window.value)[0])]);
-                //     wheel.setAttribute('id', 'wheel' + (val));
-                //     wheel.setAttribute('select-wheel', '');
-                //     wheel.object3D.position.set(-2.7, 0, 0);
-                //     var sheet = document.getElementById('mycanvas' + (val));
-                //     // var plotbox = document.getElementById('plotbox' + val);
-                //     sheet.appendChild(wheel);
-                // });
-            } else { // if existent just make it visible again
-                var plotbox = document.getElementById('plotbox' + val);
-                plotbox.object3D.visible = true;
+                    this.parentNode.appendChild(origin);
+                } else {
+                    var origin = document.getElementById('origin' + val);
+                    origin.object3D.visible = true
+                }
+                if (!loaded) {
+                    loading=true;
+                    var origin = d3.select('#origin' + val);
+                    var selection = origin.selectAll('a-plane')
+                        .data(plotdata);
+                    createSpinner(val);
+                    drawData(origin, selection, plotdata, 10, val);
+                    loaded = true;
+                    axis_ticks('x', [0, 0], val, '', false);
+                    axis_ticks('y', [0, 0], val, '', false);
+                    axis_ticks('z', [0, 0], val, '', false);
+                }
+                if (!document.getElementById('plotbox' + val)) {
+                    var plotbox = document.createElement('a-box');
+                    plotbox.setAttribute('id', 'plotbox' + val);
+                    plotbox.object3D.position.set(2.5, 2.5, 0);
+                    plotbox.setAttribute('geometry', {
+                        height: 5,
+                        width: 5,
+                        depth: .1
+                    });
+                    plotbox.setAttribute('material', {
+                        color: 'green',
+                        opacity: .05,
+                        transparent: true,
+                        alphaTest: 0.001,
+                        side: 'double'
+                    });
+                    plotbox.setAttribute('class', 'not-clickable');
+                    plotbox.object3D.visible = false;
+                    var origin = document.getElementById('origin' + val)
+                    origin.appendChild(plotbox);
+                    
+                } else { // if existent just make it visible again
+                    var plotbox = document.getElementById('plotbox' + val);
+                    plotbox.object3D.visible = true;
+                }
             }
         });
+    }
+});
+AFRAME.registerComponent('help_cursorlistener', {
+    schema: {
+        clicked: { type: 'boolean', default: false }
+    },
+    init: function () {
+        var on = this.data.clicked;
+        this.el.addEventListener('click', function () {
+            var idx = this.parentNode.getAttribute('value');
+            if (on) {
+                on = false;
+                var showHelp = document.getElementById('show' + idx + 'help');
+                showHelp.object3D.visible = false;
+                var wheelHelp = document.getElementById('wheel' + idx + 'help');
+                wheelHelp.object3D.visible = false;
+            } else {
+                on = true;
+                if (!document.getElementById('show' + idx + 'help')) {
+                    var showB = document.getElementById('show' + idx);
+                    var b = helpText(showB, loc = [-1, -.5]);
+                    b.setAttribute('value', '1.Click to load the data and\n show the plot area!');
+                } else {
+                    var showHelp = document.getElementById('show' + idx + 'help');
+                    showHelp.object3D.visible = true;
+                }
+                if (!document.getElementById('wheel' + idx + 'help')) {
+                    var wheelB = document.getElementById('wheel' + idx);
+                    var b = helpText(wheelB, loc = [-1.25, -2]);
+                    b.setAttribute('value', '2.Choose variable on the wheel \n 3.Choose axis and click the plot triangle');
+                } else {
+                    var wheelHelp = document.getElementById('wheel' + idx + 'help');
+                    wheelHelp.object3D.visible = true;
+                }
+            }
+        })
     }
 });
 /**
  * @desc AFRAME component that hides the buttons and the plot area on a click
  */
-AFRAME.registerComponent('hide_cursorlistener', { 
+AFRAME.registerComponent('hide_cursorlistener', {
     init: function () {
         this.el.addEventListener('click', function () {
             var val = this.parentNode.getAttribute('value')
-            // hide(buttons = ['x' + val, 'y' + val, 'z' + val]);
             if (document.getElementById('plotbox' + val)) {
                 document.getElementById('plotbox' + val).object3D.visible = false;
+            }
+            if (document.getElementById('origin' + val)) {
+                document.getElementById('origin' + val).object3D.visible = false;
             }
         });
     }
@@ -238,7 +271,7 @@ AFRAME.registerComponent('hide_cursorlistener', {
 /**
  * @desc AFRAME component that creates or hides the buttons for the differen data variables
  */
-AFRAME.registerComponent('axis_cursorlistener', {
+AFRAME.registerComponent('axis_cursorlistener', { //not used
     schema: {
         axis: { type: 'string', default: 'x' },
         active: { type: 'boolean', default: false },
@@ -349,7 +382,7 @@ AFRAME.registerComponent('select-wheel', {
         // labels
         var b = this.el.getAttribute('value').split(',');
         var a = ['x', 'y', 'z'];
-        var g = ['grey','darkgrey','lightgrey'];
+        var g = ['grey', 'darkgrey', 'lightgrey'];
         // button up
         var tr_up = document.createElement('a-triangle');
         tr_up.object3D.position.set(-.75, 1.5, 0.05);
@@ -373,17 +406,17 @@ AFRAME.registerComponent('select-wheel', {
         var tr_select = document.createElement('a-triangle');
         tr_select.setAttribute('id', 'sel_tri' + val);
         tr_select.object3D.position.set(-0.05, -.5, 0.05);
-        tr_select.object3D.rotation.set(0, 0, -Math.PI/2);
+        tr_select.object3D.rotation.set(0, 0, -Math.PI / 2);
         tr_select.setAttribute('scale', '.5 .5');
         tr_select.setAttribute('color', 'grey');
         tr_select.setAttribute('class', 'clickable');
-        tr_select.setAttribute('axis','x');
+        tr_select.setAttribute('axis', 'x');
         tr_select.setAttribute('variable', b[2]);
         tr_select.setAttribute('wheel-select-listener', '');
-        var sel_text = buttontext('plot',c='black',d='0.05',offset=[0,-.1]);
-        sel_text.object3D.rotation.set(0, 0, Math.PI/2);
-        sel_text.setAttribute('scale','1.5 1.5');
-        sel_text.setAttribute('align','center');
+        var sel_text = buttontext('plot', c = 'black', d = '0.05', offset = [0, -.1]);
+        sel_text.object3D.rotation.set(0, 0, Math.PI / 2);
+        sel_text.setAttribute('scale', '1.5 1.5');
+        sel_text.setAttribute('align', 'center');
         tr_select.appendChild(sel_text);
         this.el.appendChild(tr_select);
         // creates the wheel entries
@@ -391,12 +424,12 @@ AFRAME.registerComponent('select-wheel', {
         buttons.object3D.position.set(-.75, 0, 0);
         buttons.setAttribute('id', this.el.getAttribute('id') + 'buttons');
         for (j = 0; j < b.length; j++) {
-            var wheel_button = button(name = '',pos = '0 '+((j-2)*0.5)+' 0', size = [.5, .75, .1], txt = b[j], idx = val);
+            var wheel_button = button(name = '', pos = '0 ' + ((j - 2) * 0.5) + ' 0', size = [.5, .75, .1], txt = b[j], idx = val);
             if (j > 4) {
                 wheel_button.object3D.visible = false;
             } else {
-                wheel_button.setAttribute('material','color:'+ g[Math.abs(j-2)]);
-                wheel_button.setAttribute('scale',(1-Math.abs(j-2)/10)+' 1 1');
+                wheel_button.setAttribute('material', 'color:' + g[Math.abs(j - 2)]);
+                wheel_button.setAttribute('scale', (1 - Math.abs(j - 2) / 10) + ' 1 1');
             }
             wheel_button.removeAttribute('class');
             wheel_button.setAttribute('id', j);
@@ -436,7 +469,7 @@ AFRAME.registerComponent('wheel-arrow-listener', {
                 var val = this.parentNode.parentNode.getAttribute('value');
                 var b = this.parentNode.getAttribute('value').split(',');
                 var i;
-                var g = ['#808080','#A9A9A9','#D3D3D3'];
+                var g = ['#808080', '#A9A9A9', '#D3D3D3'];
                 for (i = 0; i < buttons.length; i++) {
                     var pos = buttons[i].object3D.position;
                     if (dir == 'down' && +buttons[i].getAttribute('id') < 5) {
@@ -447,7 +480,7 @@ AFRAME.registerComponent('wheel-arrow-listener', {
                             if (j < 0) { j = b.length + j };
                             buttons[j].object3D.visible = true;
                             buttons[j].object3D.position.set(0, -1.5, 0)
-                            buttons[j].setAttribute('material','color:'+g[2]);
+                            buttons[j].setAttribute('material', 'color:' + g[2]);
                             buttons[j].setAttribute('animation__pos', 'property:position;to: 0 -1 0;easing:linear;dur:500');
                             buttons[j].setAttribute('animation__scl', 'property:scale;from: 0 0 0;to: .8 1 1;easing:linear;dur:500');
                             buttons[j].setAttribute('id', -1);
@@ -459,14 +492,14 @@ AFRAME.registerComponent('wheel-arrow-listener', {
                         }
                         else {
                             buttons[i].setAttribute('animation__pos', 'property:position;to: 0 ' + (pos.y + 0.5) + ' 0;easing:linear;dur:500');
-                            buttons[i].setAttribute('animation__scl', 'property:scale;to: '+(1-Math.abs(buttons[i].getAttribute('id') - 1)/10)+' 1 1;easing:linear;dur:500');
-                            buttons[i].setAttribute('animation__col','property: components.material.material.color;type:color;to:'+g[Math.abs(buttons[i].getAttribute('id') - 1)]+';easing:linear;dur:500');
+                            buttons[i].setAttribute('animation__scl', 'property:scale;to: ' + (1 - Math.abs(buttons[i].getAttribute('id') - 1) / 10) + ' 1 1;easing:linear;dur:500');
+                            buttons[i].setAttribute('animation__col', 'property: components.material.material.color;type:color;to:' + g[Math.abs(buttons[i].getAttribute('id') - 1)] + ';easing:linear;dur:500');
                             setTimeout(function (b_cur) {
                                 b_cur.removeAttribute('animation__pos');
                                 b_cur.removeAttribute('animation__scl');
                                 b_cur.removeAttribute('animation__col');
-                                }, 550, buttons[i])
-                    }
+                            }, 550, buttons[i])
+                        }
                     } else if (dir == 'up' && +buttons[i].getAttribute('id') < 5) {
                         clicked == true;
                         if (buttons[i].getAttribute('id') == 0) {
@@ -475,7 +508,7 @@ AFRAME.registerComponent('wheel-arrow-listener', {
                             if (j >= buttons.length) { j = j - (buttons.length); };
                             buttons[j].object3D.visible = true;
                             buttons[j].object3D.position.set(0, 1.5, 0)
-                            buttons[j].setAttribute('material','color:'+g[2]);
+                            buttons[j].setAttribute('material', 'color:' + g[2]);
                             buttons[j].setAttribute('animation__pos', 'property:position;to: 0 1 0;easing:linear;dur:500');
                             buttons[j].setAttribute('animation__scl', 'property:scale;from: 0 0 0;to: .8 1 1;easing:linear;dur:500');
                             buttons[j].setAttribute('id', 5);
@@ -484,26 +517,26 @@ AFRAME.registerComponent('wheel-arrow-listener', {
                                 b_en.removeAttribute('animation__pos');
                                 b_en.removeAttribute('animation__scl');
                             }, 550, buttons[i], buttons[j])
-                        }else{ 
+                        } else {
                             buttons[i].setAttribute('animation__pos', 'property:position;to: 0 ' + (pos.y - 0.5) + ' 0;easing:linear;dur:500');
-                            buttons[i].setAttribute('animation__scl', 'property:scale;to: '+(1-Math.abs(buttons[i].getAttribute('id') - 3)/10)+' 1 1;easing:linear;dur:500');
-                            buttons[i].setAttribute('animation__col','property: components.material.material.color;type:color;to:'+g[Math.abs(buttons[i].getAttribute('id') - 3)]+';easing:linear;dur:500');
+                            buttons[i].setAttribute('animation__scl', 'property:scale;to: ' + (1 - Math.abs(buttons[i].getAttribute('id') - 3) / 10) + ' 1 1;easing:linear;dur:500');
+                            buttons[i].setAttribute('animation__col', 'property: components.material.material.color;type:color;to:' + g[Math.abs(buttons[i].getAttribute('id') - 3)] + ';easing:linear;dur:500');
                             setTimeout(function (b_cur) {
                                 b_cur.removeAttribute('animation__pos');
                                 b_cur.removeAttribute('animation__scl');
                                 b_cur.removeAttribute('animation__col');
-                                }, 550, buttons[i])
+                            }, 550, buttons[i])
                         }
                     }
-                    
+
                 }
                 for (i = 0; i < buttons.length; i++) {
                     if (dir == 'down') {
                         buttons[i].setAttribute('id', ((+buttons[i].getAttribute('id') + 1)));
                     } else {
-                        if (buttons[i].getAttribute('id')==0){
-                            buttons[i].setAttribute('id', buttons.length-1);    
-                        }else{
+                        if (buttons[i].getAttribute('id') == 0) {
+                            buttons[i].setAttribute('id', buttons.length - 1);
+                        } else {
                             buttons[i].setAttribute('id', ((+buttons[i].getAttribute('id') - 1)));
                         }
                     }
@@ -518,7 +551,7 @@ AFRAME.registerComponent('wheel-arrow-listener', {
             }
         })
     }
-})
+});
 /**
  * @desc AFRAME component: Listener for the axis buttons that turn the respective axis active
  */
@@ -542,7 +575,7 @@ AFRAME.registerComponent('wheel-axis-listener', {
             }
         })
     }
-})
+});
 /**
  * @desc AFRAME component Listener for the plot button which plots the selected variable on the selected axis.
  */
@@ -591,12 +624,12 @@ AFRAME.registerComponent('wheel-select-listener', {
                     plotID.setAttribute('animation__depth', 'property: geometry.depth;to: 5;dur:1500;easing:linear');
                     plotID.setAttribute('animation__pos', 'property: position;to:2.5 2.5 2.5;dur:1500;easing:linear');
                     line_to = '0 0 5';
-                    plotID.childNodes.forEach( function(n){
-                        if (n.getAttribute('id').includes('x')||n.getAttribute('id').includes('y')){
-                            n.object3D.position.set(n.object3D.position.x, n.object3D.position.y, 2.5);    
+                    plotID.childNodes.forEach(function (n) {
+                        if (n.getAttribute('id').includes('x') || n.getAttribute('id').includes('y')) {
+                            n.object3D.position.set(n.object3D.position.x, n.object3D.position.y, 2.5);
                         }
                     })
-                }
+            }
             //  draws axis if there is none
             if (origin.select('line__' + axis).empty()) {
                 origin.attr('line__' + axis, 'start: 0 0 0; end: ' + line_to + ';color:gray');
@@ -606,10 +639,9 @@ AFRAME.registerComponent('wheel-select-listener', {
             var scale = d3.scaleLinear()
                 .domain(extent)
                 .range(range);
-                console.log(scale);
             var selection = origin.selectAll('a-plane')
-                     .data(plotdata);
-            drawData(origin,selection,plotdata,10,key,scale);
+                .data(plotdata);
+            // drawData(origin,selection,plotdata,10,key,scale);
             // plotting the data points
             // var selection = origin.selectAll('a-plane')
             //         .data(plotdata);
@@ -633,6 +665,7 @@ AFRAME.registerComponent('wheel-select-listener', {
                     .interpolator(d3.interpolateInferno);
                 selection.attr('color', function (d) { return colorScale(d[key]); });
             }
+            selection.attr('visible', 'true');
             selection.attr('animation', function (d) {
                 var pos = '0 0 0';
                 switch (axis) {
@@ -653,7 +686,7 @@ AFRAME.registerComponent('wheel-select-listener', {
         }
         );
     }
-})
+});
 /**
  * @desc AFRAME component that creates interactible tiles that the user can teleport to on a click
  */
@@ -698,7 +731,18 @@ AFRAME.registerComponent('teleport-tiles', {
             };
         };
     }
-})
+});
+function helpText(node, loc = [0, 0]) {
+    var text = document.createElement('a-text');
+    text.setAttribute('id', node.getAttribute('id') + 'help');
+    text.setAttribute('width', '5');
+    text.setAttribute('wrapCount', '20')
+    text.setAttribute('color', 'red');
+    text.setAttribute('align', 'left');
+    text.object3D.position.set(loc[0], loc[1], 0.05);
+    node.appendChild(text);
+    return text;
+};
 /**
  * @desc casts input to a number
  * @param d - the string to be cast into a number
@@ -715,7 +759,7 @@ function type(d) {
  * @param float d - distance of the label to the button
  * @return an a-text entity
  */
-function buttontext(text, c = 'black', d = .05,offset=[0,0]) {
+function buttontext(text, c = 'black', d = .05, offset = [0, 0]) {
     var buttontext = document.createElement('a-text');
     buttontext.setAttribute('value', text);
     buttontext.setAttribute('width', '5');
@@ -723,7 +767,7 @@ function buttontext(text, c = 'black', d = .05,offset=[0,0]) {
     buttontext.setAttribute('align', 'center');
     buttontext.object3D.position.set(offset[0], offset[1], d);
     // buttontext.setAttribute('zOffset',d);
-    buttontext.setAttribute('depthTest',false);
+    buttontext.setAttribute('depthTest', false);
     return buttontext;
 };
 /**
@@ -874,25 +918,25 @@ function grid(ax1 = 'x', ax2 = 'y', idx = '', geo, oppAx = '') {
  * @param {struct} geo - geometry of the plot area
  * @param {string} key - name of the variable on axis
  */
-function axis_ticks(ax = 'x', range, idx, key, vis=true) {
+function axis_ticks(ax = 'x', range, idx, key, vis = true) {
     var orig = document.getElementById('origin' + idx);
     var pos = { x: 0, y: 0, z: 0 };
     var q = [0, .25, .5, .75, 1];
     var i;
-    if(!document.getElementById(ax+'axis'+idx)){
+    if (!document.getElementById(ax + 'axis' + idx)) {
         var axis = document.createElement('a-entity');
-        axis.setAttribute('id',ax+'axis'+idx);
-    }else {
-        var axis = document.getElementById(ax+'axis'+idx);
+        axis.setAttribute('id', ax + 'axis' + idx);
+    } else {
+        var axis = document.getElementById(ax + 'axis' + idx);
     }
     for (i = 0; i < 5; i++) {
         var pos = { x: 0, y: 0, z: 0 };
-        if (!document.getElementById('tick' +idx+ ax + i)) {
+        if (!document.getElementById('tick' + idx + ax + i)) {
             var text = document.createElement('a-text');
             text.setAttribute('id', 'tick' + idx + ax + i);
             text.setAttribute('color', 'black');
             text.setAttribute('align', 'left');
-            text.setAttribute('material','alphaTest:0.05')
+            text.setAttribute('material', 'alphaTest:0.05')
             // text.setAttribute('look-at', '[camera]');
             pos[ax] = pos[ax] + 5 * q[i];
             switch (ax) {
@@ -903,7 +947,7 @@ function axis_ticks(ax = 'x', range, idx, key, vis=true) {
                 case 'y':
                     pos.x = pos.x - .1;
                     text.setAttribute('align', 'right');
-                    text.setAttribute('baseline','bottom');
+                    text.setAttribute('baseline', 'bottom');
                     text.object3D.position.set(pos.x, pos.y, pos.z);
                     break;
                 case 'z':
@@ -913,22 +957,22 @@ function axis_ticks(ax = 'x', range, idx, key, vis=true) {
                     text.object3D.rotation.set(0, 0, Math.PI / 4);
             }
         } else {
-            text = document.getElementById('tick' +idx+ ax + i)
+            text = document.getElementById('tick' + idx + ax + i)
         }
-        if (ax=='z' && vis){
+        if (ax == 'z' && vis) {
             pos[ax] = pos[ax] + 5 * q[i];
-            text.setAttribute('animation__pos','property:position;to: 0 0 '+pos.z+';easing:linear;dur:1500');
+            text.setAttribute('animation__pos', 'property:position;to: 0 0 ' + pos.z + ';easing:linear;dur:1500');
         }
         text.setAttribute('value', numeral(range[0] + (range[1] - range[0]) * q[i]).format('0, 0.0'));
         text.setAttribute('scale', '.75 .75');
-        text.object3D.visible=vis;
-        if (!document.getElementById('tick' +idx+ ax + i)) {
+        text.object3D.visible = vis;
+        if (!document.getElementById('tick' + idx + ax + i)) {
             axis.appendChild(text);
         }
     }
-    if (!document.getElementById('label' + ax+idx)) {
+    if (!document.getElementById('label' + ax + idx)) {
         var text = document.createElement('a-text');
-        text.setAttribute('id', 'label' + ax+idx);
+        text.setAttribute('id', 'label' + ax + idx);
         text.setAttribute('color', 'black');
         switch (ax) {
             case 'x':
@@ -944,27 +988,27 @@ function axis_ticks(ax = 'x', range, idx, key, vis=true) {
                 text.setAttribute('align', 'right');
                 text.object3D.rotation.set(0, 0, Math.PI / 4);
                 pos = { x: -.4, y: -.3, z: 0 };
-                
+
         }
         text.object3D.position.set(pos.x, pos.y, pos.z);
     } else {
-        text = document.getElementById('label' + ax+idx)
+        text = document.getElementById('label' + ax + idx)
     }
-    if (ax=='z' && vis){
+    if (ax == 'z' && vis) {
         // pos = { x: -.4, y: -.3, z: 5 };
-        text.setAttribute('animation__pos','property:position;to: -.4 -.3 5;easing:linear;dur:1500')
-        var xaxis = document.getElementById('xaxis'+idx);
-        xaxis.setAttribute('animation__pos','property:position;to: 0 0 5;easing:linear;dur:1500')
-        var yaxis = document.getElementById('yaxis'+idx);
-        yaxis.setAttribute('animation__pos','property:position;to: 0 0 5;easing:linear;dur:1500')
+        text.setAttribute('animation__pos', 'property:position;to: -.4 -.3 5;easing:linear;dur:1500')
+        var xaxis = document.getElementById('xaxis' + idx);
+        xaxis.setAttribute('animation__pos', 'property:position;to: 0 0 5;easing:linear;dur:1500')
+        var yaxis = document.getElementById('yaxis' + idx);
+        yaxis.setAttribute('animation__pos', 'property:position;to: 0 0 5;easing:linear;dur:1500')
     }
     text.setAttribute('value', key);
     text.setAttribute('scale', '.75 .75');
-    text.object3D.visible=vis;
-    if (!document.getElementById('label' + ax+idx)) {
+    text.object3D.visible = vis;
+    if (!document.getElementById('label' + ax + idx)) {
         axis.appendChild(text);
     }
-    if (!document.getElementById(ax+'axis' +idx)) {
+    if (!document.getElementById(ax + 'axis' + idx)) {
         orig.appendChild(axis);
     }
 };
@@ -977,29 +1021,51 @@ function axis_ticks(ax = 'x', range, idx, key, vis=true) {
  * @param {string} key - name of the variable to be plotted
  * @param {struct} scale - scale of the data
  */
-function drawData(origin,selection,plotdata,batchSize,key,scale){
-    function drawBatch(batchNumber){
-        return function(){
-            var startIdx = batchNumber*batchSize,
-                stopIdx = Math.min(plotdata.length, startIdx+batchSize),
-                enterSel = d3.selectAll(selection.enter()._groups[0].slice(startIdx,stopIdx));
+function createSpinner(idx) {
+    var orig = document.getElementById('origin' + idx);
+    var spinner = document.createElement('a-circle');
+    spinner.object3D.position.set(2.5, 2.5, 0.1);
+    spinner.object3D.rotation.set(0, Math.PI, 0);
+    spinner.setAttribute('geometry', 'thetaStart:90');
+    spinner.setAttribute('geometry', 'thetaLength:1');
+    spinner.setAttribute('material', 'color:darkgrey');
+    spinner.setAttribute('material', 'side:back');
+    spinner.setAttribute('id', 'progbar' + idx);
+    orig.append(spinner);
+}
+function drawData(origin, selection, plotdata, batchSize, idx) {//key,scale){
 
-            enterSel.each(function(d,i){
+    function drawBatch(batchNumber, idx) {
+        return function () {
+            var startIdx = batchNumber * batchSize,
+                stopIdx = Math.min(plotdata.length, startIdx + batchSize),
+                enterSel = d3.selectAll(selection.enter()._groups[0].slice(startIdx, stopIdx));
+            var progress = document.getElementById('progbar' + idx);
+            progress.setAttribute('geometry', 'thetaLength:' + (startIdx / plotdata.length * 360));
+
+            enterSel.each(function (d, i) {
                 var newElement = origin.append('a-plane');
-                    enterSel[i] = newElement;
-                    newElement.__data__ = this.__data__;
-                    newElement._groups[0][0].setAttribute('geometry', 'height:.1;width:.1') ;
-                    newElement._groups[0][0].setAttribute('material', 'src:#circle')        ;
-                    newElement._groups[0][0].setAttribute('material', 'alphaTest:0.5')      ;
-                    newElement._groups[0][0].setAttribute('material', 'color:black')        ;
-                    newElement._groups[0][0].setAttribute('position', '0 0 0')              ;
-                    newElement._groups[0][0].setAttribute('look-at', '[camera]')  ;
-                    newElement._groups[0][0].setAttribute('animation', 'property: position; to: ' + scale(newElement.__data__[key]) + ' 0 0;dur:1500;easing:linear');
-                    })
-                if (stopIdx < plotdata.length){
-                    setTimeout(drawBatch(batchNumber+1),0);
+                enterSel[i] = newElement;
+                newElement.__data__ = this.__data__;
+                newElement._groups[0][0].setAttribute('geometry', 'height:.1;width:.1');
+                newElement._groups[0][0].setAttribute('material', 'src:#circle');
+                newElement._groups[0][0].setAttribute('material', 'alphaTest:0.5');
+                newElement._groups[0][0].setAttribute('material', 'color:black');
+                newElement._groups[0][0].setAttribute('visible', 'false');
+                newElement._groups[0][0].setAttribute('position', '0 0 0');
+                newElement._groups[0][0].setAttribute('look-at', '[camera]');
+            })
+            if (stopIdx < plotdata.length) {
+                setTimeout(drawBatch(batchNumber + 1, idx), 0);
+            } else {
+                progress.object3D.visible = false;
+                var plotbox = document.getElementById('plotbox' + idx);
+                plotbox.object3D.visible = true;
+                var showB = document.getElementById('show'+idx);
+                showB.setAttribute('show_cursorlistener',{loaded:true,loading:false});
             }
+
         };
     }
-    setTimeout(drawBatch(0),0); 
+    setTimeout(drawBatch(0, idx), 0);
 };
