@@ -212,8 +212,36 @@ AFRAME.registerComponent('show_cursorlistener', {
                     var plotbox = document.getElementById('plotbox' + val);
                     plotbox.object3D.visible = true;
                 }
+                if (!document.getElementById('inspect'+val)){
+                    var inspectB = button('','-3 -3 0',[.5,.75,.1],'inspect',val,['grey','black']);
+                    inspectB.setAttribute('inspect_cursorlistener','');
+                    this.parentNode.appendChild(inspectB);
+                }
             }
         });
+    }
+});
+AFRAME.registerComponent('inspect_cursorlistener',{
+    schema:{
+        centered: {type:'bool',default:false}
+    },
+    init:function(){
+        var cntrd = this.data.centered;
+        this.el.addEventListener('click', function(){
+            var idx = this.parentNode.getAttribute('value');
+            var canvas = document.getElementById('mycanvas'+idx);
+            var origin = document.getElementById('origin'+idx);
+            if(!cntrd){
+                console.log('center')
+                var worldPos = canvas.object3D.getWorldPosition();
+                origin.object3D.position.set(-worldPos.x-2.5,-worldPos.y-1.5,-worldPos.z-2.5);
+                cntrd = true;
+            }else{
+                console.log('wall')
+                origin.object3D.position.set(-1.5,-2.5,.05);
+                cntrd=false;
+            }
+        })
     }
 });
 AFRAME.registerComponent('help_cursorlistener', {
@@ -977,7 +1005,7 @@ function axis_ticks(ax = 'x', range, idx, key, vis = true) {
         switch (ax) {
             case 'x':
                 text.setAttribute('align', 'left');
-                pos = { x: .3, y: -.1, z: 0 };
+                pos = { x: .3, y: -.3, z: 0 };
                 break;
             case 'y':
                 text.setAttribute('align', 'left');
