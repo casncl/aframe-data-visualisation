@@ -58,14 +58,17 @@ AFRAME.registerComponent('axis_buttons', {
     init: function () {
         var val = this.el.getAttribute('value');
         // labels
-        var b = ['show', 'hide', 'help'];
+        var b = ['show', 'hide', 'help','inspect'];
         // positions
-        var bx = [0.2, 0.8, .5].map(function (x) { return 10 * (x - .5) });
-        var by = [0.2, 0.2, .15].map(function (x) { return 15 * (x - .5) });
+        var bx = [0.2, 0.8, .5,.2].map(function (x) { return 10 * (x - .5) });
+        var by = [0.2, 0.2, .15,.3].map(function (x) { return 15 * (x - .5) });
         for (j = 0; j < b.length; j++) {
             var ax_button = button(name = '', pos = bx[j] + ' ' + by[j] + ' 0', size = [.5, .75, .1], txt = b[j], idx = val);
             ax_button.setAttribute('value', b[j]);
             ax_button.setAttribute(b[j] + '_cursorlistener', '');
+            if(b[j]=='inspect'){
+                ax_button.object3D.visible=false;
+            }
             this.el.appendChild(ax_button);
         }
         d3.csv('simulated_data_2_random_2000.csv', type, function (error, data) {
@@ -187,6 +190,10 @@ AFRAME.registerComponent('show_cursorlistener', {
                     axis_ticks('y', [0, 0], val, '', false);
                     axis_ticks('z', [0, 0], val, '', false);
                 }
+                var insB = document.getElementById('inspect'+val);
+                if (!insB.object3D.visible){
+                    insB.object3D.visible=true;
+                }
                 if (!document.getElementById('plotbox' + val)) {
                     var plotbox = document.createElement('a-box');
                     plotbox.setAttribute('id', 'plotbox' + val);
@@ -212,34 +219,41 @@ AFRAME.registerComponent('show_cursorlistener', {
                     var plotbox = document.getElementById('plotbox' + val);
                     plotbox.object3D.visible = true;
                 }
-                if (!document.getElementById('inspect'+val)){
-                    var inspectB = button('','-3 -3 0',[.5,.75,.1],'inspect',val,['grey','black']);
-                    inspectB.setAttribute('inspect_cursorlistener','');
-                    this.parentNode.appendChild(inspectB);
-                }
+                
             }
         });
     }
 });
 AFRAME.registerComponent('inspect_cursorlistener',{
     schema:{
+        clicked: {type:'bool',default:false},
         centered: {type:'bool',default:false}
     },
     init:function(){
         var cntrd = this.data.centered;
+        var clck = this.data.clicked;
         this.el.addEventListener('click', function(){
             var idx = this.parentNode.getAttribute('value');
             var canvas = document.getElementById('mycanvas'+idx);
             var origin = document.getElementById('origin'+idx);
-            if(!cntrd){
-                console.log('center')
-                var worldPos = canvas.object3D.getWorldPosition();
-                origin.object3D.position.set(-worldPos.x-2.5,-worldPos.y-1.5,-worldPos.z-2.5);
-                cntrd = true;
-            }else{
-                console.log('wall')
-                origin.object3D.position.set(-1.5,-2.5,.05);
-                cntrd=false;
+            if (!clck){
+                clck=true;
+                if(!cntrd){
+                    console.log('center')
+                    var worldPos = canvas.object3D.getWorldPosition();
+                    origin.setAttribute('animation__pos','property:position;to:'+(-worldPos.x-2.5)+' '+(-worldPos.y-1.5)+' '+(-worldPos.z-2.5)+';easing:linear;dur:500');
+                    // origin.object3D.position.set(-worldPos.x-2.5,-worldPos.y-1.5,-worldPos.z-2.5);
+                    cntrd = true;
+                }else{ 
+                    console.log('wall')
+                    origin.setAttribute('animation__pos','property:position;to:'+(-1.5)+' '+(-2.5)+' '+(.05)+';easing:linear;dur:500');
+                    // origin.object3D.position.set(-1.5,-2.5,.05);
+                    cntrd=false;
+                }
+                setTimeout(function(){
+                    origin.removeAttribute('animation__pos');
+                    clck=false;
+                },600)
             }
         })
     }
@@ -595,7 +609,7 @@ AFRAME.registerComponent('wheel-axis-listener', {
                 var val = this.parentNode.parentNode.parentNode.getAttribute('value');
                 var pos = this.object3D.position;
                 selector = document.getElementById('sel_tri' + val);
-                selector.setAttribute('animation__pos', 'property:position;to: 0 ' + pos.y + ' 0.05;easing:linear;dur:500');
+                selector.setAttribute('animation__pos', 'property:position;to: -0.05 ' + pos.y + ' 0.05;easing:linear;dur:500');
                 selector.setAttribute('axis', this.getAttribute('id')[0]);
                 setTimeout(function () {
                     clicked = false;
@@ -889,7 +903,7 @@ function rotatePlot(a, n, d) {
  * @desc hides the listed buttons
  * @param string array buttons - list of object names to made invisible
  */
-function hide(buttons = '') {
+function hide(buttons = '') {//not used
     var i;
     for (i = 0; i < buttons.length; i++) {
         var b = document.getElementById(buttons[i]);
@@ -903,7 +917,7 @@ function hide(buttons = '') {
  * @desc shows the listed buttons
  * @param string array buttons - list of object names to made visible
  */
-function show(buttons = '') {
+function show(buttons = '') {//not used
     var i;
     for (i = 0; i < buttons.length; i++) {
         var b = document.getElementById(buttons[i]);
