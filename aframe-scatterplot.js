@@ -45,6 +45,10 @@ AFRAME.registerComponent('room', {
             sheet.setAttribute('rotation', { x: 0, y: (i - 4) / 8 * 360, z: 0 });
             if (!(i % 2)) {
                 sheet.setAttribute('axis_buttons', '');
+            }else{
+                var ctrlB = button('',pos='0 0 0',size=[.5,1,.1],txt='gaze/touch',idx='');
+                ctrlB.setAttribute('control_button','');
+                sheet.appendChild(ctrlB);
             }
             sheet.setAttribute('value', i);
             space.appendChild(sheet);
@@ -86,6 +90,28 @@ AFRAME.registerComponent('axis_buttons', {
 /**
  * @desc AFRAME component that listens for a click which loads the respective variable data to the plotpoints
  */
+AFRAME.registerComponent('control_button',{
+    schema:{
+        control: {type:'string',default:'gaze'}
+    },
+    init:function(){
+        var control_type = this.data.control;
+        this.el.addEventListener('click',function(){
+            // var idx=this.parentNode.getAttribute('value');
+            scene = document.getElementById('scene');
+            cursor = document.getElementById('cursor');
+            if (control_type=='gaze'){
+                control_type='touch';
+                scene.setAttribute('touch-screen','');
+                cursor.setAttribute('cursor','fuse:false');
+            }else{
+                control_type='gaze';
+                scene.removeAttribute('touch-screen');
+                cursor.setAttribute('cursor','fuse:true');
+            }
+        })
+    }
+})
 AFRAME.registerComponent('data_cursorlistener', { // not used
     schema: {
         axis: { default: 'x' }
