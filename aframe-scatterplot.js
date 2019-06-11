@@ -46,7 +46,7 @@ AFRAME.registerComponent('room', {
             if (!(i % 2)) {
                 sheet.setAttribute('axis_buttons', '');
             }else{
-                var ctrlB = button('',pos='0 0 0',size=[.5,1,.1],txt='gaze/touch',idx='');
+                var ctrlB = button('',pos='0 0 0',size=[.5,1,.1],txt='gaze/touch',idx=i);
                 ctrlB.setAttribute('control_button','');
                 sheet.appendChild(ctrlB);
             }
@@ -64,8 +64,8 @@ AFRAME.registerComponent('axis_buttons', {
         // labels
         var b = ['show', 'hide', 'help','inspect'];
         // positions
-        var bx = [0.2, 0.8, .5,.2].map(function (x) { return 10 * (x - .5) });
-        var by = [0.2, 0.2, .15,.3].map(function (x) { return 15 * (x - .5) });
+        var bx = [0.2, 0.7, .45,.45].map(function (x) { return 10 * (x - .5) });
+        var by = [0.2, 0.2, .15,.25].map(function (x) { return 15 * (x - .5) });
         for (j = 0; j < b.length; j++) {
             var ax_button = button(name = '', pos = bx[j] + ' ' + by[j] + ' 0', size = [.5, .75, .1], txt = b[j], idx = val);
             ax_button.setAttribute('value', b[j]);
@@ -88,7 +88,7 @@ AFRAME.registerComponent('axis_buttons', {
     }
 });
 /**
- * @desc AFRAME component that listens for a click which loads the respective variable data to the plotpoints
+ * @desc AFRAME component that switches between gaze control and touch screen click
  */
 AFRAME.registerComponent('control_button',{
     schema:{
@@ -112,6 +112,9 @@ AFRAME.registerComponent('control_button',{
         })
     }
 })
+/**
+ * @desc AFRAME component that listens for a click which loads the respective variable data to the plotpoints
+ */
 AFRAME.registerComponent('data_cursorlistener', { // not used
     schema: {
         axis: { default: 'x' }
@@ -250,6 +253,9 @@ AFRAME.registerComponent('show_cursorlistener', {
         });
     }
 });
+/**
+ * @desc AFRAME component that moves the plot area to the center of the room (or back)
+ */
 AFRAME.registerComponent('inspect_cursorlistener',{
     schema:{
         clicked: {type:'bool',default:false},
@@ -284,6 +290,9 @@ AFRAME.registerComponent('inspect_cursorlistener',{
         })
     }
 });
+/**
+ * @desc AFRAME component that shows help messages for different buttons
+ */
 AFRAME.registerComponent('help_cursorlistener', {
     schema: {
         clicked: { type: 'boolean', default: false }
@@ -298,12 +307,18 @@ AFRAME.registerComponent('help_cursorlistener', {
                 showHelp.object3D.visible = false;
                 var wheelHelp = document.getElementById('wheel' + idx + 'help');
                 wheelHelp.object3D.visible = false;
+                var inspectHelp = document.getElementById('inspect' + idx+ 'help');
+                inspectHelp.object3D.visible = false;
+                var hideHelp = document.getElementById('hide' + idx + 'help');
+                hideHelp.object3D.visible = false;
+                var gtHelp = document.getElementById('gaze/touch' + (+idx+1) + 'help');
+                gtHelp.object3D.visible = false;
             } else {
                 on = true;
                 if (!document.getElementById('show' + idx + 'help')) {
                     var showB = document.getElementById('show' + idx);
                     var b = helpText(showB, loc = [-1, -.5]);
-                    b.setAttribute('value', '1.Click to load the data and\n show the plot area!');
+                    b.setAttribute('value', 'Click to load the data and\n show the plot area!');
                 } else {
                     var showHelp = document.getElementById('show' + idx + 'help');
                     showHelp.object3D.visible = true;
@@ -311,10 +326,34 @@ AFRAME.registerComponent('help_cursorlistener', {
                 if (!document.getElementById('wheel' + idx + 'help')) {
                     var wheelB = document.getElementById('wheel' + idx);
                     var b = helpText(wheelB, loc = [-1.25, -2]);
-                    b.setAttribute('value', '2.Choose variable on the wheel \n 3.Choose axis and click the plot triangle');
+                    b.setAttribute('value', 'Choose variable on the wheel, \n choose axis and click the plot triangle');
                 } else {
                     var wheelHelp = document.getElementById('wheel' + idx + 'help');
                     wheelHelp.object3D.visible = true;
+                }
+                if (!document.getElementById('inspect' + idx + 'help')) {
+                    var inspectB = document.getElementById('inspect' + idx);
+                    var b = helpText(inspectB, loc = [-1, -.5]);
+                    b.setAttribute('value', 'Click to move the plot area\n to the center of the room');
+                } else {
+                    var inspectHelp = document.getElementById('inspect' + idx + 'help');
+                    inspectHelp.object3D.visible = true;
+                }
+                if (!document.getElementById('hide' + idx + 'help')) {
+                    var hideB = document.getElementById('hide' + idx);
+                    var b = helpText(hideB, loc = [-1, -.5]);
+                    b.setAttribute('value', 'Click to hide the plot area');
+                } else {
+                    var hideHelp = document.getElementById('hide' + idx + 'help');
+                    hideHelp.object3D.visible = true;
+                }
+                if (!document.getElementById('gaze/touch' + (+idx+1) + 'help')) {
+                    var gtB = document.getElementById('gaze/touch' + (+idx+1));
+                    var b = helpText(gtB, loc = [-1, -.5]);
+                    b.setAttribute('value', 'Click to switch between gaze\ncontrol and touch click control');
+                } else {
+                    var gtHelp = document.getElementById('gaze/touch' + (+idx+1) + 'help');
+                    gtHelp.object3D.visible = true;
                 }
             }
         })
@@ -800,6 +839,11 @@ AFRAME.registerComponent('teleport-tiles', {
         };
     }
 });
+/**
+ * 
+ * @param {object} node 
+ * @param {array} loc 
+ */
 function helpText(node, loc = [0, 0]) {
     var text = document.createElement('a-text');
     text.setAttribute('id', node.getAttribute('id') + 'help');
@@ -813,7 +857,7 @@ function helpText(node, loc = [0, 0]) {
 };
 /**
  * @desc casts input to a number
- * @param d - the string to be cast into a number
+ * @param {string }d - the string to be cast into a number
  * @return the cast number
  */
 function type(d) {
@@ -822,9 +866,9 @@ function type(d) {
 };
 /**
  * @desc creates the button label
- * @param string text - the string to be cast into a number
- * @param string c - the color of the label
- * @param float d - distance of the label to the button
+ * @param {string} text - the string to be cast into a number
+ * @param {string} c - the color of the label
+ * @param {float} d - distance of the label to the button
  * @return an a-text entity
  */
 function buttontext(text, c = 'black', d = .05, offset = [0, 0]) {
@@ -840,12 +884,12 @@ function buttontext(text, c = 'black', d = .05, offset = [0, 0]) {
 };
 /**
  * @desc creates a clickable button
- * @param string name - name for the id 
- * @param string pos - position relative to parent node
- * @param array size - dimensions of the button
- * @param string txt - text for the button label
- * @param string idx - index of the wall
- * @param string array c - colors for the button [0] and the text [1]
+ * @param {string} name - name for the id 
+ * @param {string} pos - position relative to parent node
+ * @param {array} size - dimensions of the button
+ * @param {string} txt - text for the button label
+ * @param {string} idx - index of the wall
+ * @param {string} array c - colors for the button [0] and the text [1]
  * @return a clickable a-box entity with an a-text label
  */
 function button(name = '', pos = '0 0 0', size = [.5, .5, .3], txt = '', idx = '', c = ['grey', 'black']) {
@@ -866,10 +910,10 @@ function button(name = '', pos = '0 0 0', size = [.5, .5, .3], txt = '', idx = '
 };
 /**
  * @desc creates the movement of the data variable buttons
- * @param d - the data entry 
- * @param array shft - shifted position relative to the axis parent button
- * @param string ax - axis label of the parent button
- * @param string c - color of the button
+ * @param {object} d - the data entry 
+ * @param {array} shft - shifted position relative to the axis parent button
+ * @param {string} ax - axis label of the parent button
+ * @param {string} c - color of the button
  * @return a clickable button with the data_cursorlistener
  */
 function data_buttons(d, shft = [0, 0], ax = 'x', c = 'grey') {
@@ -892,10 +936,10 @@ function data_buttons(d, shft = [0, 0], ax = 'x', c = 'grey') {
 };
 /**
  * @desc adds the rotation function on hover to the rotation buttons
- * @param string ax - respective axis
- * @param string pos - position of the button
- * @param string txt - label for the button
- * @param int idx - index of the wall 
+ * @param {string} ax - respective axis
+ * @param {string} pos - position of the button
+ * @param {string} txt - label for the button
+ * @param {int} idx - index of the wall 
  * @return a button that rotates the plot area on hover
  */
 function rot_button(ax = 'x', pos = '0 0 0', txt = '', idx = 0) {
@@ -911,11 +955,11 @@ function rot_button(ax = 'x', pos = '0 0 0', txt = '', idx = 0) {
 };
 /**
  * @desc rotates the plot area along the corresponding axis
- * @param string a - axis the plot rotattes along
- * @param int n - index of the plot
- * @param string d - direction of rotation ('<' or '>')
+ * @param {string} a - axis the plot rotattes along
+ * @param {int} n - index of the plot
+ * @param {string} d - direction of rotation ('<' or '>')
  */
-function rotatePlot(a, n, d) {
+function rotatePlot(a, n, d) {//not used
     var plot = document.getElementById('plotbox' + n);
     var rot = plot.getAttribute('rotation');
     if (d == '<') {
@@ -927,7 +971,7 @@ function rotatePlot(a, n, d) {
 };
 /**
  * @desc hides the listed buttons
- * @param string array buttons - list of object names to made invisible
+ * @param {string array} buttons - list of object names to made invisible
  */
 function hide(buttons = '') {//not used
     var i;
@@ -941,7 +985,7 @@ function hide(buttons = '') {//not used
 };
 /**
  * @desc shows the listed buttons
- * @param string array buttons - list of object names to made visible
+ * @param {string array} buttons - list of object names to made visible
  */
 function show(buttons = '') {//not used
     var i;
@@ -955,11 +999,11 @@ function show(buttons = '') {//not used
 };
 /**
  * @desc creates a rough grid for orientation
- * @param string ax1 - axis along which the grid is supposed to run
- * @param string ax2 - second axis along which the grid is supposed to run
- * @param string idx - index of the plot area
- * @param struct geo - geometry of the plot area
- * @param string oppAx - third axis 
+ * @param {string} ax1 - axis along which the grid is supposed to run
+ * @param {string} ax2 - second axis along which the grid is supposed to run
+ * @param {string} idx - index of the plot area
+ * @param {struct} geo - geometry of the plot area
+ * @param {string} oppAx - third axis 
  */
 function grid(ax1 = 'x', ax2 = 'y', idx = '', geo, oppAx = '') {
     var origin = d3.select('#origin' + idx);
@@ -1099,10 +1143,24 @@ function createSpinner(idx) {
     spinner.setAttribute('material', 'color:darkgrey');
     spinner.setAttribute('material', 'side:back');
     spinner.setAttribute('id', 'progbar' + idx);
+    var text = document.createElement('a-text');
+    text.setAttribute('value','Loading data');
+    text.setAttribute('color','black');
+    text.setAttribute('align','center')
+    text.object3D.position.set(0,1.2,-.1);
+    text.object3D.rotation.set(0,Math.PI,0);
+    spinner.appendChild(text);
     orig.append(spinner);
 }
-function drawData(origin, selection, plotdata, batchSize, idx) {//key,scale){
-
+/**
+ * creates the datapoints batchwise
+ * @param {object} origin 
+ * @param {d3 object} selection 
+ * @param {object} plotdata 
+ * @param {int} batchSize 
+ * @param {int} idx 
+ */
+function drawData(origin, selection, plotdata, batchSize, idx) {
     function drawBatch(batchNumber, idx) {
         return function () {
             var startIdx = batchNumber * batchSize,
