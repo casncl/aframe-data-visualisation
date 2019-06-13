@@ -14,23 +14,9 @@
   <script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.0.0/lodash.min.js'></script>
   <script src="https://unpkg.com/aframe-look-at-component@0.8.x/dist/aframe-look-at-component.min.js"></script> 
 </head>
-<style>
-  text {
-    font: 11px sans-serif;
-  }
-  .axis path,
-  .axis line {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
-  }
-  .tick line {
-    opacity: 0.2;
-  }
-</style>
 
 <body>
-  <a-scene id='scene' stats room teleport-tiles>
+  <a-scene id='scene' stats room teleport-tiles value='simulated_data_2_random_2000.csv'>
     <a-assets>
       <img id='wood' src='1-fine-wood-seamless.jpg'>
       <img id='circle' src='White_Circle.png'>
@@ -41,7 +27,7 @@
           animation__click='property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 0.5 0.5 0.5; to: 1 1 1'
           animation__fusing='property: scale; startEvents: fusing; easing: easeInCubic; dur: 1500; from: 1 1 1; to: 0.5 0.5 0.5'
           animation__mouseleave='property: scale; startEvents: mouseleave; easing: easeInCubic; dur: 500; to: 1 1 1'
-          raycaster='objects: .clickable,.data_click' cursor='fuse:false' position='0 0 -1'
+          raycaster='objects: .clickable,.data_click' cursor='fuse:true' position='0 0 -1'
           geometry='primitive:ring; radiusInner:0.02; radiusOuter:0.03' 
           material='color:black; shader:flat'> 
         </a-entity>

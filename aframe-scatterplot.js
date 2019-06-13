@@ -62,7 +62,7 @@ AFRAME.registerComponent('axis_buttons', {
     init: function () {
         var val = this.el.getAttribute('value');
         // labels
-        var b = ['show', 'hide', 'help','inspect'];
+        var b = ['load', 'clear', 'help','inspect'];
         // positions
         var bx = [0.2, 0.7, .45,.45].map(function (x) { return 10 * (x - .5) });
         var by = [0.2, 0.2, .15,.25].map(function (x) { return 15 * (x - .5) });
@@ -75,7 +75,8 @@ AFRAME.registerComponent('axis_buttons', {
             }
             this.el.appendChild(ax_button);
         }
-        d3.csv('simulated_data_2_random_2000.csv', type, function (error, data) {
+        var csvData = document.getElementById('scene').getAttribute('value')
+        d3.csv(csvData, type, function (error, data) {
             window.value = data;
             var wheel = document.createElement('a-entity');
             wheel.setAttribute('value', [d3.keys(d3.values(window.value)[0])]);
@@ -185,7 +186,7 @@ AFRAME.registerComponent('data_cursorlistener', { // not used
 /**
  * @desc AFRAME component that makes the axis buttons visible and creates the plot area
  */
-AFRAME.registerComponent('show_cursorlistener', {
+AFRAME.registerComponent('load_cursorlistener', {
     schema: {
         loaded: { type: 'boolean', default: false },
         loading: { type: 'boolean', default: false }
@@ -243,7 +244,15 @@ AFRAME.registerComponent('show_cursorlistener', {
                     plotbox.object3D.visible = false;
                     var origin = document.getElementById('origin' + val)
                     origin.appendChild(plotbox);
-                    
+                    var geo = plotbox.getAttribute('geometry')
+                    grid('x', 'y', val, geo);
+                    grid('y', 'x', val, geo);
+                    if (!origin.hasAttribute('line__x')) {
+                        origin.setAttribute('line__x', 'start: 0 0 0; end: 5 0 0;color:gray');
+                    }
+                    if (!origin.hasAttribute('line__y')) {
+                        origin.setAttribute('line__y', 'start: 0 0 0; end: 0 5 0;color:gray');
+                    }
                 } else { // if existent just make it visible again
                     var plotbox = document.getElementById('plotbox' + val);
                     plotbox.object3D.visible = true;
@@ -303,25 +312,25 @@ AFRAME.registerComponent('help_cursorlistener', {
             var idx = this.parentNode.getAttribute('value');
             if (on) {
                 on = false;
-                var showHelp = document.getElementById('show' + idx + 'help');
-                showHelp.object3D.visible = false;
+                var loadHelp = document.getElementById('load' + idx + 'help');
+                loadHelp.object3D.visible = false;
                 var wheelHelp = document.getElementById('wheel' + idx + 'help');
                 wheelHelp.object3D.visible = false;
                 var inspectHelp = document.getElementById('inspect' + idx+ 'help');
                 inspectHelp.object3D.visible = false;
-                var hideHelp = document.getElementById('hide' + idx + 'help');
-                hideHelp.object3D.visible = false;
+                var clearHelp = document.getElementById('clear' + idx + 'help');
+                clearHelp.object3D.visible = false;
                 var gtHelp = document.getElementById('gaze/touch' + (+idx+1) + 'help');
                 gtHelp.object3D.visible = false;
             } else {
                 on = true;
-                if (!document.getElementById('show' + idx + 'help')) {
-                    var showB = document.getElementById('show' + idx);
-                    var b = helpText(showB, loc = [-1, -.5]);
+                if (!document.getElementById('load' + idx + 'help')) {
+                    var loadB = document.getElementById('load' + idx);
+                    var b = helpText(loadB, loc = [-1, -.5]);
                     b.setAttribute('value', 'Click to load the data and\n show the plot area!');
                 } else {
-                    var showHelp = document.getElementById('show' + idx + 'help');
-                    showHelp.object3D.visible = true;
+                    var loadHelp = document.getElementById('load' + idx + 'help');
+                    loadHelp.object3D.visible = true;
                 }
                 if (!document.getElementById('wheel' + idx + 'help')) {
                     var wheelB = document.getElementById('wheel' + idx);
@@ -339,13 +348,13 @@ AFRAME.registerComponent('help_cursorlistener', {
                     var inspectHelp = document.getElementById('inspect' + idx + 'help');
                     inspectHelp.object3D.visible = true;
                 }
-                if (!document.getElementById('hide' + idx + 'help')) {
-                    var hideB = document.getElementById('hide' + idx);
-                    var b = helpText(hideB, loc = [-1, -.5]);
-                    b.setAttribute('value', 'Click to hide the plot area');
+                if (!document.getElementById('clear' + idx + 'help')) {
+                    var clearB = document.getElementById('clear' + idx);
+                    var b = helpText(clearB, loc = [-1, -.5]);
+                    b.setAttribute('value', 'Click to clear the plot data');
                 } else {
-                    var hideHelp = document.getElementById('hide' + idx + 'help');
-                    hideHelp.object3D.visible = true;
+                    var clearHelp = document.getElementById('clear' + idx + 'help');
+                    clearHelp.object3D.visible = true;
                 }
                 if (!document.getElementById('gaze/touch' + (+idx+1) + 'help')) {
                     var gtB = document.getElementById('gaze/touch' + (+idx+1));
@@ -362,15 +371,46 @@ AFRAME.registerComponent('help_cursorlistener', {
 /**
  * @desc AFRAME component that hides the buttons and the plot area on a click
  */
-AFRAME.registerComponent('hide_cursorlistener', {
+AFRAME.registerComponent('clear_cursorlistener', {
     init: function () {
         this.el.addEventListener('click', function () {
             var val = this.parentNode.getAttribute('value')
-            if (document.getElementById('plotbox' + val)) {
-                document.getElementById('plotbox' + val).object3D.visible = false;
-            }
             if (document.getElementById('origin' + val)) {
-                document.getElementById('origin' + val).object3D.visible = false;
+                var origin = document.getElementById('origin' + val);
+                origin.childNodes.forEach(
+                    function(n){
+                        var nodeclass = n.getAttribute('class');
+                        switch(nodeclass){
+                            case 'datapoint':
+                                n.object3D.position.set(0,0,0);
+                            case 'axis':
+                                n.setAttribute('visible','false');
+                        }
+                    }
+                )
+                if (document.getElementById('plotbox' + val)) {
+                    var plot = document.getElementById('plotbox' + val);
+                    plot.setAttribute('animation__depth', 'property: geometry.depth;to: .1;dur:1500;easing:linear');
+                    plot.setAttribute('animation__pos', 'property: position;to: 2.5 2.5 0;dur:1500;easing:linear');
+                    var ax = ['x','y','z'];
+                    var i,j,k,l;
+                    for (l=0;l<4;l++){
+                    for (i=0;i<3;i++){
+                        for (j=0;j<3;j++){
+                            if(ax[i]!=ax[j]&&(ax[i]=='z' || ax[j]=='z')){
+                                origin.setAttribute('line__'+ax[i]+ax[j]+l,'visible:false');
+                                for (k=0;k<2;k++){
+                                    if(ax[k]!=ax[i]&&ax[k]!=ax[j]){
+                                        origin.setAttribute('line__'+ax[i]+ax[j]+ax[k]+l,'visible:false');        
+                                    }
+                                }
+                            }
+                            
+                        }
+                    }}
+                    origin.setAttribute('line__z','visible:false');
+
+                }
             }
         });
     }
@@ -709,13 +749,13 @@ AFRAME.registerComponent('wheel-select-listener', {
             switch (axis) {
                 case 'x':
                     range = [0, geo.width];
-                    line_to = geo.width + ' 0 0';
+                    // line_to = geo.width + ' 0 0';
                     break;
                 case 'y':
                     range = [0, geo.height];
-                    line_to = '0 ' + geo.height + ' 0';
-                    grid('x', 'y', idx, geo);
-                    grid('y', 'x', idx, geo);
+                    // line_to = '0 ' + geo.height + ' 0';
+                    // grid('x', 'y', idx, geo);
+                    // grid('y', 'x', idx, geo);
                     break;
                 case 'z':
                     range = [0, 5];
@@ -789,6 +829,7 @@ AFRAME.registerComponent('wheel-select-listener', {
             });
             setTimeout(function () {
                 clicked = true
+                selection.attr('animation',null);
             }, 1500);
         }
         );
@@ -1006,20 +1047,24 @@ function show(buttons = '') {//not used
  * @param {string} oppAx - third axis 
  */
 function grid(ax1 = 'x', ax2 = 'y', idx = '', geo, oppAx = '') {
-    var origin = d3.select('#origin' + idx);
+    var origin = document.getElementById('origin' + idx);
     var pos_start = { x: 0, y: 0, z: 0 };
     var pos_end = { x: 0, y: 0, z: 0 };
     var q = [.25, .5, .75, 1];
     var i;
     for (i = 0; i < 4; i++) {
-        pos_start[ax1] = q[i] * geo.width;
-        pos_end[ax1] = q[i] * geo.width;
-        pos_end[ax2] = geo.width;
-        if (oppAx != '') {
-            pos_start[oppAx] = geo.width;
-            pos_end[oppAx] = geo.width;
+        if (origin.hasAttribute('line__' + ax1 + ax2 + oppAx + i)){
+            origin.setAttribute('line__' + ax1 + ax2 + oppAx + i,'visible:true');
+        }else{
+            pos_start[ax1] = q[i] * geo.width;
+            pos_end[ax1] = q[i] * geo.width;
+            pos_end[ax2] = geo.width;
+            if (oppAx != '') {
+                pos_start[oppAx] = geo.width;
+                pos_end[oppAx] = geo.width;
+            }
+            origin.setAttribute('line__' + ax1 + ax2 + oppAx + i, 'start: ' + pos_start.x + ' ' + pos_start.y + ' ' + pos_start.z + '; end: ' + pos_end.x + ' ' + pos_end.y + ' ' + pos_end.z + ';color:lightgray');
         }
-        origin.attr('line__' + ax1 + ax2 + oppAx + i, 'start: ' + pos_start.x + ' ' + pos_start.y + ' ' + pos_start.z + '; end: ' + pos_end.x + ' ' + pos_end.y + ' ' + pos_end.z + ';color:lightgray');
     }
 };
 /**
@@ -1038,8 +1083,10 @@ function axis_ticks(ax = 'x', range, idx, key, vis = true) {
     if (!document.getElementById(ax + 'axis' + idx)) {
         var axis = document.createElement('a-entity');
         axis.setAttribute('id', ax + 'axis' + idx);
+        axis.setAttribute('class','axis');
     } else {
         var axis = document.getElementById(ax + 'axis' + idx);
+        axis.setAttribute('visible',vis);
     }
     for (i = 0; i < 5; i++) {
         var pos = { x: 0, y: 0, z: 0 };
@@ -1049,6 +1096,7 @@ function axis_ticks(ax = 'x', range, idx, key, vis = true) {
             text.setAttribute('color', 'black');
             text.setAttribute('align', 'left');
             text.setAttribute('material', 'alphaTest:0.05')
+            text.setAttribute('class','axis');
             // text.setAttribute('look-at', '[camera]');
             pos[ax] = pos[ax] + 5 * q[i];
             switch (ax) {
@@ -1077,7 +1125,7 @@ function axis_ticks(ax = 'x', range, idx, key, vis = true) {
         }
         text.setAttribute('value', numeral(range[0] + (range[1] - range[0]) * q[i]).format('0, 0.0'));
         text.setAttribute('scale', '.75 .75');
-        text.object3D.visible = vis;
+        text.setAttribute('visible',vis);
         if (!document.getElementById('tick' + idx + ax + i)) {
             axis.appendChild(text);
         }
@@ -1116,7 +1164,7 @@ function axis_ticks(ax = 'x', range, idx, key, vis = true) {
     }
     text.setAttribute('value', key);
     text.setAttribute('scale', '.75 .75');
-    text.object3D.visible = vis;
+    text.setAttribute('visible',vis);
     if (!document.getElementById('label' + ax + idx)) {
         axis.appendChild(text);
     }
@@ -1180,6 +1228,7 @@ function drawData(origin, selection, plotdata, batchSize, idx) {
                 newElement._groups[0][0].setAttribute('visible', 'false');
                 newElement._groups[0][0].setAttribute('position', '0 0 0');
                 newElement._groups[0][0].setAttribute('look-at', '[camera]');
+                newElement._groups[0][0].setAttribute('class', 'datapoint');
             })
             if (stopIdx < plotdata.length) {
                 setTimeout(drawBatch(batchNumber + 1, idx), 0);
@@ -1187,8 +1236,8 @@ function drawData(origin, selection, plotdata, batchSize, idx) {
                 progress.object3D.visible = false;
                 var plotbox = document.getElementById('plotbox' + idx);
                 plotbox.object3D.visible = true;
-                var showB = document.getElementById('show'+idx);
-                showB.setAttribute('show_cursorlistener',{loaded:true,loading:false});
+                var loadB = document.getElementById('load'+idx);
+                loadB.setAttribute('load_cursorlistener',{loaded:true,loading:false});
             }
 
         };
