@@ -1,4 +1,5 @@
 # VR Data Visualisation
+**OUTDATED - NEEDS UPDATING**
 
 Quick overview of the implementation so far of the data visualisation in [AFRAME](https://aframe.io).
 
