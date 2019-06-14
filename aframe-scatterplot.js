@@ -2,8 +2,8 @@
  * Javascript for data visualisation using aframe
  * @author Christian Garske
  */
-var rotate;
-/**
+
+ /**
  * @desc AFRAME component to listen for a touch on the screen as that emits the
  * click function
  */
@@ -45,8 +45,12 @@ AFRAME.registerComponent('room', {
             sheet.setAttribute('rotation', { x: 0, y: (i - 4) / 8 * 360, z: 0 });
             if (!(i % 2)) {
                 sheet.setAttribute('axis_buttons', '');
-            }else{
-                var ctrlB = button('',pos='0 0 0',size=[.5,1,.1],txt='gaze/touch',idx=i);
+            }else if (i==5){
+                var ctrlB = button('',pos='0 0 0',size=[.5,1,.1],txt='switch',idx=i);
+                ctrlB.appendChild(buttontext('controls:','black',0.05,[0,.75]));
+                var text = buttontext('gaze','black',0.05,[0,0.5]);
+                text.setAttribute('id','cur_control');
+                ctrlB.appendChild(text);
                 ctrlB.setAttribute('control_button','');
                 sheet.appendChild(ctrlB);
             }
@@ -101,88 +105,21 @@ AFRAME.registerComponent('control_button',{
             // var idx=this.parentNode.getAttribute('value');
             scene = document.getElementById('scene');
             cursor = document.getElementById('cursor');
+            current = document.getElementById('cur_control');
             if (control_type=='gaze'){
                 control_type='touch';
                 scene.setAttribute('touch-screen','');
                 cursor.setAttribute('cursor','fuse:false');
+                current.setAttribute('value','trigger');
             }else{
                 control_type='gaze';
                 scene.removeAttribute('touch-screen');
                 cursor.setAttribute('cursor','fuse:true');
+                current.setAttribute('value','gaze');
             }
         })
     }
 })
-/**
- * @desc AFRAME component that listens for a click which loads the respective variable data to the plotpoints
- */
-AFRAME.registerComponent('data_cursorlistener', { // not used
-    schema: {
-        axis: { default: 'x' }
-    },
-    init: function () {
-        var compdata = this.data;
-        this.el.addEventListener('click',
-            function () {
-                var plotdata = window.value,
-                    idx = this.parentNode.parentNode.getAttribute('value'),
-                    plotID = document.getElementById('plotbox' + idx),
-                    geo = plotID.getAttribute('geometry'),
-                    range = [];
-                switch (compdata.axis) {
-                    case 'x':
-                        range = [0, geo.width];
-                        break;
-                    case 'y':
-                        range = [0, geo.height];
-                        break;
-                    case 'z':
-                        range = [0, geo.depth];
-                }
-                var origin = d3.select('#origin' + idx);
-                var key = this.getAttribute('value'),
-                    extent = d3.extent(plotdata, function (d) { return +d[key]; });
-                axis_ticks(compdata.axis, extent, idx, geo, key);
-                var scale = d3.scaleLinear()
-                    .domain(extent)
-                    .range(range);
-                // plotting the data points
-                var selection = origin.selectAll('a-plane')
-                    .data(plotdata);
-                selection.enter().append('a-plane')
-                    .attr('geometry', 'height:.1;width:.1') // size
-                    .attr('material', 'src:#circle')        // texture
-                    .attr('material', 'alphaTest:0.5')      // enable alpha
-                    .attr('material', 'color:black')        // color
-                    .attr('position', '0 0 0')              // position
-                    .attr('look-at', '[camera]')            // always faces camera
-                    .attr('animation', function (d) {
-                        return 'property: position; to: ' + scale(d[key]) + ' 0 0;dur:1500;easing:linear';
-                    })
-                if (compdata.axis == 'z') {
-                    var colorScale = d3.scaleSequential()
-                        .domain(extent)
-                        .interpolator(d3.interpolateInferno);
-                    selection.attr('color', function (d) { return colorScale(d[key]); });
-                }
-                selection.attr('animation', function (d) {
-                    var pos = '0 0 0';
-                    switch (compdata.axis) {
-                        case 'x':
-                            pos = scale(d[key]) + ' ' + d3.select(this).attr('position').y + ' ' + d3.select(this).attr('position').z;
-                            break;
-                        case 'y':
-                            pos = d3.select(this).attr('position').x + ' ' + scale(d[key]) + ' ' + d3.select(this).attr('position').z;
-                            break;
-                        case 'z':
-                            pos = d3.select(this).attr('position').x + ' ' + d3.select(this).attr('position').y + ' ' + scale(d[key]);
-                    }
-                    return 'property: position; to: ' + pos + ';dur:1500;easing:linear';
-                });
-            }
-        );
-    }
-});
 /**
  * @desc AFRAME component that makes the axis buttons visible and creates the plot area
  */
@@ -197,9 +134,8 @@ AFRAME.registerComponent('load_cursorlistener', {
         this.el.addEventListener('click', function () {
             var val = this.parentNode.getAttribute('value')
             var plotdata = window.value
-           // create plotting area if none exists yet
             if (!loading) {
-                if (!document.getElementById('origin' + val)) { // creates the plot origin if there is none
+                if (!document.getElementById('origin' + val)) { 
                     var origin = document.createElement('a-entity');
                     origin.setAttribute('id', 'origin' + val)
                     origin.setAttribute('position', (-1.5) + ' ' + (-2.5) + ' 0.05');
@@ -244,16 +180,13 @@ AFRAME.registerComponent('load_cursorlistener', {
                     plotbox.object3D.visible = false;
                     var origin = document.getElementById('origin' + val)
                     origin.appendChild(plotbox);
-                    var geo = plotbox.getAttribute('geometry')
-                    grid('x', 'y', val, geo);
-                    grid('y', 'x', val, geo);
                     if (!origin.hasAttribute('line__x')) {
                         origin.setAttribute('line__x', 'start: 0 0 0; end: 5 0 0;color:gray');
                     }
                     if (!origin.hasAttribute('line__y')) {
                         origin.setAttribute('line__y', 'start: 0 0 0; end: 0 5 0;color:gray');
                     }
-                } else { // if existent just make it visible again
+                } else {
                     var plotbox = document.getElementById('plotbox' + val);
                     plotbox.object3D.visible = true;
                 }
@@ -320,13 +253,15 @@ AFRAME.registerComponent('help_cursorlistener', {
                 inspectHelp.object3D.visible = false;
                 var clearHelp = document.getElementById('clear' + idx + 'help');
                 clearHelp.object3D.visible = false;
-                var gtHelp = document.getElementById('gaze/touch' + (+idx+1) + 'help');
+                var gtHelp = document.getElementById('switch' + (+idx+1) + 'help');
                 gtHelp.object3D.visible = false;
+                var hHelp = document.getElementById('help' + idx + 'help');
+                hHelp.object3D.visible = false;
             } else {
                 on = true;
                 if (!document.getElementById('load' + idx + 'help')) {
                     var loadB = document.getElementById('load' + idx);
-                    var b = helpText(loadB, loc = [-1, -.5]);
+                    var b = helpText(loadB, loc = [-1, .5]);
                     b.setAttribute('value', 'Click to load the data and\n show the plot area!');
                 } else {
                     var loadHelp = document.getElementById('load' + idx + 'help');
@@ -335,34 +270,43 @@ AFRAME.registerComponent('help_cursorlistener', {
                 if (!document.getElementById('wheel' + idx + 'help')) {
                     var wheelB = document.getElementById('wheel' + idx);
                     var b = helpText(wheelB, loc = [-1.25, -2]);
-                    b.setAttribute('value', 'Choose variable on the wheel, \n choose axis and click the plot triangle');
+                    b.setAttribute('value', 'Choose variable on the wheel, \n choose axis and click the plot triangle!');
                 } else {
                     var wheelHelp = document.getElementById('wheel' + idx + 'help');
                     wheelHelp.object3D.visible = true;
                 }
                 if (!document.getElementById('inspect' + idx + 'help')) {
                     var inspectB = document.getElementById('inspect' + idx);
-                    var b = helpText(inspectB, loc = [-1, -.5]);
-                    b.setAttribute('value', 'Click to move the plot area\n to the center of the room');
+                    var b = helpText(inspectB, loc = [-1, .5]);
+                    b.setAttribute('value', 'Click to move the plot area\n to the center of the room!');
                 } else {
                     var inspectHelp = document.getElementById('inspect' + idx + 'help');
                     inspectHelp.object3D.visible = true;
                 }
                 if (!document.getElementById('clear' + idx + 'help')) {
                     var clearB = document.getElementById('clear' + idx);
-                    var b = helpText(clearB, loc = [-1, -.5]);
-                    b.setAttribute('value', 'Click to clear the plot data');
+                    var b = helpText(clearB, loc = [-1, .5]);
+                    b.setAttribute('value', 'Click to clear the plot data!');
                 } else {
                     var clearHelp = document.getElementById('clear' + idx + 'help');
                     clearHelp.object3D.visible = true;
                 }
-                if (!document.getElementById('gaze/touch' + (+idx+1) + 'help')) {
-                    var gtB = document.getElementById('gaze/touch' + (+idx+1));
+                if (!document.getElementById('switch' + (+idx+1) + 'help')) {
+                    var gtB = document.getElementById('switch' + (+idx+1));
                     var b = helpText(gtB, loc = [-1, -.5]);
-                    b.setAttribute('value', 'Click to switch between gaze\ncontrol and touch click control');
+                    b.setAttribute('value', 'Click to switch between gaze\ncontrol and touch click control!');
                 } else {
-                    var gtHelp = document.getElementById('gaze/touch' + (+idx+1) + 'help');
+                    var gtHelp = document.getElementById('switch' + (+idx+1) + 'help');
                     gtHelp.object3D.visible = true;
+                }
+                if (!document.getElementById('help' + idx + 'help')) {
+                    var hB = document.getElementById('help' + idx);
+                    var b = helpText(hB, loc = [0, -.5]);
+                    b.setAttribute('align','center');
+                    b.setAttribute('value', 'Click on the floor to teleport to the highlighted tile!');
+                } else {
+                    var hHelp = document.getElementById('help' + idx + 'help');
+                    hHelp.object3D.visible = true;
                 }
             }
         })
@@ -382,10 +326,10 @@ AFRAME.registerComponent('clear_cursorlistener', {
                         var nodeclass = n.getAttribute('class');
                         switch(nodeclass){
                             case 'datapoint':
-                                n.object3D.position.set(0,0,0);
                             case 'axis':
+                                n.object3D.position.set(0,0,0);
                                 n.setAttribute('visible','false');
-                        }
+                            }
                     }
                 )
                 if (document.getElementById('plotbox' + val)) {
@@ -414,111 +358,6 @@ AFRAME.registerComponent('clear_cursorlistener', {
             }
         });
     }
-});
-/**
- * @desc AFRAME component that creates or hides the buttons for the differen data variables
- */
-AFRAME.registerComponent('axis_cursorlistener', { //not used
-    schema: {
-        axis: { type: 'string', default: 'x' },
-        active: { type: 'boolean', default: false },
-        listen: { type: 'boolean', default: true } // bool for the listener to turn off temporarily to avoid multiple triggers
-    },
-    init: function () {
-        var option = this.data;
-        var idx = this.el.parentNode.getAttribute('value'); this.el.addEventListener('click', function () {
-            if (option.listen) { // button hasn't been triggered 
-                if (option.active) { //hide the variable buttons
-                    option.listen = false;
-                    option.active = false;
-                    var buttonchildren = d3.select(this).selectAll('.data_click')
-                    buttonchildren.attr('animation', 'property:position;to: 0 0 0;dur:1500;easing:linear');
-                    setTimeout(function () { // deletes the buttons after the animation
-                        buttonchildren.remove();
-                        document.getElementById(option.axis + idx).setAttribute('material', 'color:grey');
-                        option.listen = true;
-                    }, 1500);
-                } else { // show the axis and the variable buttons
-                    option.listen = false;
-                    option.active = true;
-                    var plotID = document.getElementById('plotbox' + idx);
-                    var geo = plotID.getAttribute('geometry');
-                    if (!document.getElementById('origin' + idx)) { // creates the plot origion if there is none
-                        var origin = d3.select(plotID).append('a-entity')
-                            .attr('id', 'origin' + idx)
-                            .attr('position', (-geo.width / 2) + ' ' + (-geo.height / 2) + ' 0');
-                    } else {
-                        var origin = d3.select('#origin' + idx);
-                    }
-                    switch (option.axis) {
-                        case 'x':
-                            line_to = geo.width + ' 0 0';
-                            break;
-                        case 'y':
-                            line_to = '0 ' + geo.height + ' 0';
-                            console.log('y');
-                            grid('x', 'y', idx, geo);
-                            grid('y', 'x', idx, geo);
-                            break;
-                        case 'z':
-                            grid('x', 'z', idx, geo, '');
-                            grid('z', 'x', idx, geo, '');
-                            grid('z', 'y', idx, geo, '');
-                            grid('y', 'z', idx, geo, '');
-                            grid('x', 'z', idx, geo, 'y');
-                            grid('z', 'x', idx, geo, 'y');
-                            grid('z', 'y', idx, geo, 'x');
-                            grid('y', 'z', idx, geo, 'x');
-                            origin.attr('animation', 'property: position;to:-2.5 -2.5 -2.5;dur:1500;easing:linear');
-                            plotID.setAttribute('animation__depth', 'property: geometry.depth;to: 5;dur:1500;easing:linear');
-                            plotID.setAttribute('animation__pos', 'property: position;to:-.5 0 3;dur:1500;easing:linear');
-                            line_to = '0 0 5';
-                            var ax = ['x', 'y', 'z'],
-                                p = ['-.3 .65 0', '.3 .65 0'],
-                                s = ['<', '>'], i, j;
-                            for (i = 0; i < 3; i++) {
-                                for (j = 0; j < 2; j++) {
-                                    document.getElementById(ax[i] + idx).appendChild(rot_button(ax[i], p[j], s[j], idx));
-                                }
-                            }
-                            // create button that centers the plot to the original position
-                            var ctr_button = button('', '0 -4.75 0', [.3, .65, .08], 'center', idx)
-                            ctr_button.addEventListener('click', function () {
-                                plotID.removeAttribute('animation__rot');
-                                plotID.setAttribute('animation__rot', 'property:rotation;to: 0 0 0;dur:1500;easing:linear;autoplay:true');
-                            });
-                            var wall = document.getElementById('mycanvas' + idx);
-                            wall.appendChild(ctr_button);
-                    }
-                    //actual plotting
-                    var shift = [0, 0];
-                    var data = window.value;
-                    d3.entries(data[0]).forEach(function (d) { //create data variable buttons
-                        if (d.key != '' && d.key != 'sample_id' && d.key != 'value') {
-                            shift[0]++;
-                            if (shift[0] > 5) {
-                                shift[0] = 1;
-                                shift[1] = - 0.75;
-                            }
-                            // create data buttons 
-                            var button = data_buttons(d, shft = shift, ax = option.axis);
-                            // appending the buttons to the axis button
-                            document.getElementById(option.axis + idx).appendChild(button);
-                            document.getElementById(option.axis + idx).setAttribute('material', 'color:green');
-                        }
-                    });
-                    //  draws axis if there is none
-                    if (origin.select('line__' + option.axis).empty()) {
-                        origin.attr('line__' + option.axis, 'start: 0 0 0; end: ' + line_to + ';color:gray');
-                        setTimeout(function () {
-                            option.listen = true
-                        }, 1500);
-                    }
-                }
-            }
-        });
-    }
-
 });
 /**
  * @desc AFRAME component for a wheel based selection tool
@@ -739,7 +578,7 @@ AFRAME.registerComponent('wheel-select-listener', {
                 key = this.getAttribute('variable'),
                 axis = this.getAttribute('axis');
             range = [];
-            if (!document.getElementById('origin' + idx)) { // creates the plot origion if there is none
+            if (!document.getElementById('origin' + idx)) { 
                 var origin = d3.select(plotID).append('a-entity')
                     .attr('id', 'origin' + idx)
                     .attr('position', (-geo.width / 2) + ' ' + (-geo.height / 2) + ' 0');
@@ -749,37 +588,29 @@ AFRAME.registerComponent('wheel-select-listener', {
             switch (axis) {
                 case 'x':
                     range = [0, geo.width];
-                    // line_to = geo.width + ' 0 0';
                     break;
                 case 'y':
                     range = [0, geo.height];
-                    // line_to = '0 ' + geo.height + ' 0';
-                    // grid('x', 'y', idx, geo);
-                    // grid('y', 'x', idx, geo);
                     break;
                 case 'z':
                     range = [0, 5];
-                    grid('x', 'z', idx, geo, '');
-                    grid('z', 'x', idx, geo, '');
-                    grid('z', 'y', idx, geo, '');
-                    grid('y', 'z', idx, geo, '');
-                    grid('x', 'z', idx, geo, 'y');
-                    grid('z', 'x', idx, geo, 'y');
-                    grid('z', 'y', idx, geo, 'x');
-                    grid('y', 'z', idx, geo, 'x');
-                    // origin.attr('animation', 'property: position;to:-2.5 -2.5 -2.5;dur:1500;easing:linear');
+                    grid('x', 'z', idx, geo.width, '');
+                    grid('z', 'x', idx, geo.width, '');
+                    grid('z', 'y', idx, geo.width, '');
+                    grid('y', 'z', idx, geo.width, '');
+                    grid('x', 'z', idx, geo.width, 'y');
+                    grid('z', 'x', idx, geo.width, 'y');
+                    grid('z', 'y', idx, geo.width, 'x');
+                    grid('y', 'z', idx, geo.width, 'x');
                     plotID.setAttribute('animation__depth', 'property: geometry.depth;to: 5;dur:1500;easing:linear');
                     plotID.setAttribute('animation__pos', 'property: position;to:2.5 2.5 2.5;dur:1500;easing:linear');
-                    line_to = '0 0 5';
-                    plotID.childNodes.forEach(function (n) {
-                        if (n.getAttribute('id').includes('x') || n.getAttribute('id').includes('y')) {
-                            n.object3D.position.set(n.object3D.position.x, n.object3D.position.y, 2.5);
-                        }
-                    })
-            }
-            //  draws axis if there is none
-            if (origin.select('line__' + axis).empty()) {
-                origin.attr('line__' + axis, 'start: 0 0 0; end: ' + line_to + ';color:gray');
+                    var line_to = '0 0 5';
+                    // plotID.childNodes.forEach(function (n) {
+                    //     if (n.getAttribute('id').includes('x') || n.getAttribute('id').includes('y')) {
+                    //         n.object3D.position.set(n.object3D.position.x, n.object3D.position.y, 2.5);
+                    //     }
+                    // })
+                    origin.attr('line__' + axis, 'start: 0 0 0; end: ' + line_to + ';color:gray');
             }
             var extent = d3.extent(plotdata, function (d) { return +d[key]; });
             axis_ticks(axis, extent, idx, key);
@@ -788,24 +619,6 @@ AFRAME.registerComponent('wheel-select-listener', {
                 .range(range);
             var selection = origin.selectAll('a-plane')
                 .data(plotdata);
-            // drawData(origin,selection,plotdata,10,key,scale);
-            // plotting the data points
-            // var selection = origin.selectAll('a-plane')
-            //         .data(plotdata);
-            // setTimeout( function(o){ 
-            //     var selection = o.selectAll('a-plane')
-            //         .data(plotdata);
-            //     selection.enter().append('a-plane')
-            //         .attr('geometry', 'height:.1;width:.1') // size
-            //         .attr('material', 'src:#circle')        // texture
-            //         .attr('material', 'alphaTest:0.5')      // enable alpha
-            //     .attr('material', 'color:black')        // color
-            //     .attr('position', '0 0 0')              // position
-            //     .attr('look-at', '[camera]')            // always faces camera
-            //     .attr('animation', function (d) {
-            //         return 'property: position; to: ' + scale(d[key]) + ' 0 0;dur:1500;easing:linear';
-            //     })
-            // },0,origin);
             if (axis == 'z') {
                 var colorScale = d3.scaleSequential()
                     .domain(extent)
@@ -881,9 +694,9 @@ AFRAME.registerComponent('teleport-tiles', {
     }
 });
 /**
- * 
- * @param {object} node 
- * @param {array} loc 
+ * creates a help text for the specified button
+ * @param {object} node -  button for which the help text is to be displayed
+ * @param {array} loc - location of the text relative to the button
  */
 function helpText(node, loc = [0, 0]) {
     var text = document.createElement('a-text');
@@ -976,69 +789,6 @@ function data_buttons(d, shft = [0, 0], ax = 'x', c = 'grey') {
     return new_data_b;
 };
 /**
- * @desc adds the rotation function on hover to the rotation buttons
- * @param {string} ax - respective axis
- * @param {string} pos - position of the button
- * @param {string} txt - label for the button
- * @param {int} idx - index of the wall 
- * @return a button that rotates the plot area on hover
- */
-function rot_button(ax = 'x', pos = '0 0 0', txt = '', idx = 0) {
-    var b = button(ax, pos, size = [.3, .3, .08], txt = txt, idx = idx)
-    b.addEventListener('mouseenter', function () {
-        window.clearInterval(rotate);
-        rotate = setInterval(function () { rotatePlot(ax, idx, txt) }, 100);
-    });
-    b.addEventListener('mouseleave', function () {
-        window.clearInterval(rotate);
-    });
-    return b;
-};
-/**
- * @desc rotates the plot area along the corresponding axis
- * @param {string} a - axis the plot rotattes along
- * @param {int} n - index of the plot
- * @param {string} d - direction of rotation ('<' or '>')
- */
-function rotatePlot(a, n, d) {//not used
-    var plot = document.getElementById('plotbox' + n);
-    var rot = plot.getAttribute('rotation');
-    if (d == '<') {
-        rot[a] = rot[a] - 1;
-    } else if (d == '>') {
-        rot[a] = rot[a] + 1;
-    }
-    plot.setAttribute('rotation', rot);
-};
-/**
- * @desc hides the listed buttons
- * @param {string array} buttons - list of object names to made invisible
- */
-function hide(buttons = '') {//not used
-    var i;
-    for (i = 0; i < buttons.length; i++) {
-        var b = document.getElementById(buttons[i]);
-        if (b.object3D.visible == true) {
-            b.object3D.visible = false;
-            b.removeAttribute('class');
-        }
-    }
-};
-/**
- * @desc shows the listed buttons
- * @param {string array} buttons - list of object names to made visible
- */
-function show(buttons = '') {//not used
-    var i;
-    for (i = 0; i < buttons.length; i++) {
-        var b = document.getElementById(buttons[i]);
-        if (b.object3D.visible == false) {
-            b.object3D.visible = true;
-            b.setAttribute('class', 'clickable');
-        }
-    }
-};
-/**
  * @desc creates a rough grid for orientation
  * @param {string} ax1 - axis along which the grid is supposed to run
  * @param {string} ax2 - second axis along which the grid is supposed to run
@@ -1046,7 +796,7 @@ function show(buttons = '') {//not used
  * @param {struct} geo - geometry of the plot area
  * @param {string} oppAx - third axis 
  */
-function grid(ax1 = 'x', ax2 = 'y', idx = '', geo, oppAx = '') {
+function grid(ax1 = 'x', ax2 = 'y', idx = '', dim, oppAx = '') {
     var origin = document.getElementById('origin' + idx);
     var pos_start = { x: 0, y: 0, z: 0 };
     var pos_end = { x: 0, y: 0, z: 0 };
@@ -1056,12 +806,12 @@ function grid(ax1 = 'x', ax2 = 'y', idx = '', geo, oppAx = '') {
         if (origin.hasAttribute('line__' + ax1 + ax2 + oppAx + i)){
             origin.setAttribute('line__' + ax1 + ax2 + oppAx + i,'visible:true');
         }else{
-            pos_start[ax1] = q[i] * geo.width;
-            pos_end[ax1] = q[i] * geo.width;
-            pos_end[ax2] = geo.width;
+            pos_start[ax1] = q[i] * dim;
+            pos_end[ax1] = q[i] * dim;
+            pos_end[ax2] = dim;
             if (oppAx != '') {
-                pos_start[oppAx] = geo.width;
-                pos_end[oppAx] = geo.width;
+                pos_start[oppAx] = dim;
+                pos_end[oppAx] = dim;
             }
             origin.setAttribute('line__' + ax1 + ax2 + oppAx + i, 'start: ' + pos_start.x + ' ' + pos_start.y + ' ' + pos_start.z + '; end: ' + pos_end.x + ' ' + pos_end.y + ' ' + pos_end.z + ';color:lightgray');
         }
@@ -1155,11 +905,16 @@ function axis_ticks(ax = 'x', range, idx, key, vis = true) {
         text = document.getElementById('label' + ax + idx)
     }
     if (ax == 'z' && vis) {
-        // pos = { x: -.4, y: -.3, z: 5 };
         text.setAttribute('animation__pos', 'property:position;to: -.4 -.3 5;easing:linear;dur:1500')
         var xaxis = document.getElementById('xaxis' + idx);
+        if (xaxis.hasAttribute('animation__pos')){
+            xaxis.removeAttribute('animation__pos');
+        }
         xaxis.setAttribute('animation__pos', 'property:position;to: 0 0 5;easing:linear;dur:1500')
         var yaxis = document.getElementById('yaxis' + idx);
+        if (yaxis.hasAttribute('animation__pos')){
+            yaxis.removeAttribute('animation__pos');
+        }
         yaxis.setAttribute('animation__pos', 'property:position;to: 0 0 5;easing:linear;dur:1500')
     }
     text.setAttribute('value', key);
@@ -1173,13 +928,8 @@ function axis_ticks(ax = 'x', range, idx, key, vis = true) {
     }
 };
 /**
- * @desc draws the data in batches
- * @param {struct} origin - origion point of the plot
- * @param {struct} selection - d3 selection of the data points
- * @param {struct} plotdata - the data loaded in 
- * @param {int} batchSize - size of the batches
- * @param {string} key - name of the variable to be plotted
- * @param {struct} scale - scale of the data
+ * @desc creates a circular progress indicator
+ * @param {int} idx - wall which the progress indicator should be displayed on
  */
 function createSpinner(idx) {
     var orig = document.getElementById('origin' + idx);
@@ -1215,7 +965,7 @@ function drawData(origin, selection, plotdata, batchSize, idx) {
                 stopIdx = Math.min(plotdata.length, startIdx + batchSize),
                 enterSel = d3.selectAll(selection.enter()._groups[0].slice(startIdx, stopIdx));
             var progress = document.getElementById('progbar' + idx);
-            progress.setAttribute('geometry', 'thetaLength:' + (startIdx / plotdata.length * 360));
+            progress.setAttribute('geometry', 'thetaLength:' + ((startIdx+1) / plotdata.length * 360));
 
             enterSel.each(function (d, i) {
                 var newElement = origin.append('a-plane');
@@ -1238,6 +988,9 @@ function drawData(origin, selection, plotdata, batchSize, idx) {
                 plotbox.object3D.visible = true;
                 var loadB = document.getElementById('load'+idx);
                 loadB.setAttribute('load_cursorlistener',{loaded:true,loading:false});
+                grid('x', 'y', idx, 5);
+                grid('y', 'x', idx, 5);
+                    
             }
 
         };
