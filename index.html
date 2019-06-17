@@ -8,7 +8,7 @@
   <link rel='shortcut icon' href=''>
   <script src='https://aframe.io/releases/0.9.0/aframe.min.js'></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
-  <script src='aframe-scatterplot.js'></script>
+  <script src='aframe_scatterplot.js'></script>
   <script src='https://d3js.org/d3.v4.min.js'></script>
   <script src='https://cdn.jsdelivr.net/npm/canvg/dist/browser/canvg.min.js'></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.0.0/lodash.min.js'></script>
@@ -16,10 +16,10 @@
 </head>
 
 <body>
-  <a-scene id='scene' room teleport-tiles value='simulated_data_2_random_2000.csv'>
+  <a-scene id='scene' room teleport_tiles value='/data/simulated_data_2_random_2000.csv'>
     <a-assets>
-      <img id='wood' src='1-fine-wood-seamless.jpg'>
-      <img id='circle' src='White_Circle.png'>
+      <img id='wood' src='/images/wood_seamless.png'>
+      <img id='circle' src='/images/white_circle.png'>
     </a-assets>
     <a-entity id='rig'>
       <a-entity id='camera' camera look-controls wasd-controls>
