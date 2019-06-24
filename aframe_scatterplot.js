@@ -92,12 +92,13 @@ AFRAME.registerComponent('axis_buttons', {
             }
             this.el.appendChild(ax_button);
         }
-        var csv_data = document.getElementById('scene').getAttribute('value')
+        var scene = document.getElementById('scene')
+        var csv_data = scene.getAttribute('csv')
         d3.csv(csv_data, type, function (error, data) {
             window.value = data;
             var wheel = document.createElement('a-entity');
             var variables = d3.keys(d3.values(window.value)[0])
-            var exclude = ['','value','sample_id'];
+            var exclude = scene.getAttribute('exclude').split(',');
             var variables_filtered = variables.filter(function(value,index,arr){
                 return !exclude.includes(value);
             })
