@@ -3,6 +3,14 @@
 
 Quick overview of the implementation of the VR Data Visualisation Tool in [AFRAME](https://aframe.io).
 
+## How to plot:
+1. Choose whether you want gaze control or trigger control. This can be changed by clicking the *switch* button on the left-hand wall after loading the room.
+2. Load in the data on the wall you want to display the data on by clicking on the corresponding *load* button.
+3. Plot the data 
+    - Choose a variable with the up an down buttons on the variable wheel (central left on the wall). The chosen variable is highlighted by a red frame.
+    - Choose the axis you want to plot the variable on by clicking on the button with the corresponding label. The currently active axis is highlighted by a red frame.
+    - Plot the data to the chosen axis by clicking on the plot triangle. This has to be repeated for every axis.
+
 
 ## Functionalities:
 You start out in the center of an octagonal room. On each of these walls, data can be displayed using the buttons visible on each of them.

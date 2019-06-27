@@ -233,7 +233,8 @@ AFRAME.registerComponent('inspect_cursorlistener',{
                 clck=true;
                 if(!cntrd){
                     var world_pos = wall.object3D.getWorldPosition();
-                    origin.setAttribute('animation__pos','property:position;to:'+(-world_pos.x-2.5)+' '+(-world_pos.y-1.5)+' '+(-world_pos.z-2.5)+';easing:linear;dur:500');
+                    var rot = wall.object3D.rotation.y;
+                    origin.setAttribute('animation__pos','property:position;to:'+((-Math.round(Math.cos(rot))*world_pos.x)+(-Math.round(Math.sin(rot))*world_pos.z)-2.5)+' '+(world_pos.y-3.5)+' '+((-Math.round(Math.cos(rot))*world_pos.z)+(-Math.round(Math.sin(rot))*world_pos.x)-2.5)+';easing:linear;dur:500');
                     cntrd = true;
                 }else{ 
                     origin.setAttribute('animation__pos','property:position;to:'+(-1.5)+' '+(-2.5)+' '+(.05)+';easing:linear;dur:500');
@@ -647,6 +648,7 @@ AFRAME.registerComponent('wheel_select_listener', {
                 selection.attr('color', function (d) { return color_scale(d[key]); });
             }
             selection.attr('visible', 'true');
+            selection.attr('animation',null);
             selection.attr('animation', function (d) {
                 var pos = '0 0 0';
                 switch (axis) {
@@ -663,7 +665,7 @@ AFRAME.registerComponent('wheel_select_listener', {
             });
             setTimeout(function () {
                 clicked = true
-                selection.attr('animation',null);
+                // selection.attr('animation',null);
             }, 1500);
         }
         );
@@ -868,7 +870,7 @@ function axis_ticks(ax = 'x', range, idx, key, vis = true) {
             text.setAttribute('align', 'left');
             text.setAttribute('material', 'alphaTest:0.05')
             text.setAttribute('class','axis');
-            // text.setAttribute('look-at', '[camera]');
+            text.setAttribute('look-at', '[camera]');
             pos[ax] = pos[ax] + 5 * frac[i];
             switch (ax) {
                 case 'x':
@@ -905,6 +907,7 @@ function axis_ticks(ax = 'x', range, idx, key, vis = true) {
         var text = document.createElement('a-text');
         text.setAttribute('id', 'label' + ax + idx);
         text.setAttribute('color', 'black');
+        // text.setAttribute('look-at','[camera]')
         switch (ax) {
             case 'x':
                 text.setAttribute('align', 'left');
